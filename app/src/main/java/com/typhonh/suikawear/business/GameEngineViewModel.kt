@@ -6,7 +6,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntSize
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.typhonh.suikawear.data.Container
 import com.typhonh.suikawear.data.GameState
+import com.typhonh.suikawear.data.fruit.Fruit
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -66,7 +68,24 @@ class GameEngineViewModel(
     private fun update() {
         state.ticks++
 
+        applyFruitPhysics(state.pendingFruit)
+
         emitLatestState()
+    }
+
+    private fun applyFruitPhysics(fruit: Fruit) {
+        fruit.velY += GRAVITY
+        fruit.posY += fruit.velY
+
+        checkContainerCollision(fruit, state.container)
+    }
+
+    private fun checkContainerCollision(fruit: Fruit, container: Container) {
+        val containerBottom = (container.height) + container.posY
+        if (fruit.posY + fruit.radius >= containerBottom) {
+            fruit.posY = containerBottom - fruit.radius
+            fruit.velY *= -1 * container.coEfRestitution
+        }
     }
 
     private fun emitLatestState() {
@@ -80,7 +99,8 @@ class GameEngineViewModel(
     }
 
     companion object {
-        private const val FPS = 30
+        private const val FPS = 15
         private const val UPDATE_INTERVAL = 1000L / FPS
+        private const val GRAVITY = 0.015f // %s^-2
     }
 }
