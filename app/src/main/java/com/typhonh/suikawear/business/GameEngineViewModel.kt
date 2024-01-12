@@ -69,6 +69,8 @@ class GameEngineViewModel(
         state.pendingFruit.isDropped = true
         val oldX = state.pendingFruit.posX
         val oldY = state.pendingFruit.posY
+        state.droppedFruits.add(state.pendingFruit)
+
         state.pendingFruit = Fruit.getPendingCandidate()
         state.pendingFruit.posX = oldX
         state.pendingFruit.posY = oldY
@@ -76,8 +78,8 @@ class GameEngineViewModel(
 
     private fun update() {
         state.ticks++
-        if (state.pendingFruit.isDropped)
-            applyFruitPhysics(state.pendingFruit)
+
+        state.droppedFruits.forEach { applyFruitPhysics(it) }
 
         emitLatestState()
     }
@@ -102,7 +104,8 @@ class GameEngineViewModel(
             GameState(
                 ticks = state.ticks,
                 container = state.container,
-                pendingFruit = state.pendingFruit
+                pendingFruit = state.pendingFruit,
+                droppedFruits = state.droppedFruits
             )
         }
     }

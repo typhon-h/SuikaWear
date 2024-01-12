@@ -8,5 +8,6 @@ data class GameState (
     var size: IntSize = IntSize.Zero,
     var isRound: Boolean = true,
     val container: Container = Container(),
-    var pendingFruit: Fruit = Fruit.getPendingCandidate()
+    var pendingFruit: Fruit = Fruit.getPendingCandidate(),
+    val droppedFruits: MutableSet<Fruit> = mutableSetOf()
     )

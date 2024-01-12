@@ -90,6 +90,7 @@ fun MainCanvas(
     MainCanvas(
         container = uiState.value.container,
         pendingFruit = uiState.value.pendingFruit,
+        droppedFruits = uiState.value.droppedFruits,
         gameController = gameController,
         modifier = modifier.onSizeChanged {
             viewModel.onCanvasSizeChange(it, isRound)
@@ -101,6 +102,7 @@ fun MainCanvas(
 fun MainCanvas(
     container: Container,
     pendingFruit: Fruit,
+    droppedFruits: Set<Fruit>,
     gameController: GameController,
     modifier: Modifier = Modifier
 ) {
@@ -133,6 +135,7 @@ fun MainCanvas(
     ) {
         draw(container)
         draw(pendingFruit)
+        droppedFruits.forEach { draw(it) }
     }
 
     LaunchedEffect(Unit) {
