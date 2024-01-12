@@ -67,6 +67,11 @@ class GameEngineViewModel(
 
     fun onTap() {
         state.pendingFruit.isDropped = true
+        val oldX = state.pendingFruit.posX
+        val oldY = state.pendingFruit.posY
+        state.pendingFruit = Fruit.getPendingCandidate()
+        state.pendingFruit.posX = oldX
+        state.pendingFruit.posY = oldY
     }
 
     private fun update() {
