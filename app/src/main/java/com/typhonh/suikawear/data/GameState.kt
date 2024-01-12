@@ -1,11 +1,13 @@
 package com.typhonh.suikawear.data
 
 import androidx.compose.ui.unit.IntSize
+import com.typhonh.suikawear.data.fruit.Cherry
+import com.typhonh.suikawear.data.fruit.Fruit
 
 data class GameState (
     var ticks: Long = 0L,
     var size: IntSize = IntSize.Zero,
     var isRound: Boolean = true,
     val container: Container = Container(),
-    val pendingFruit: Fruit = Fruit()
+    val pendingFruit: Fruit = Cherry()
     )

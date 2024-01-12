@@ -1,6 +1,6 @@
 package com.typhonh.suikawear.data
 
 interface  UiObject {
-    val posX: Float
-    val posY: Float
+    var posX: Float
+    var posY: Float
 }

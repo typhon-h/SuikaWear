@@ -6,8 +6,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntSize
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.typhonh.suikawear.data.Container
-import com.typhonh.suikawear.data.Fruit
 import com.typhonh.suikawear.data.GameState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -75,17 +73,8 @@ class GameEngineViewModel(
         _uiState.update {
             GameState(
                 ticks = state.ticks,
-                container = Container(
-                    width = state.container.width,
-                    height = state.container.height,
-                    posX = state.container.posX,
-                    posY = state.container.posY,
-                ),
-                pendingFruit = Fruit(
-                    posX = state.pendingFruit.posX,
-                    posY = state.pendingFruit.posY,
-                    radius = state.pendingFruit.radius
-                )
+                container = state.container,
+                pendingFruit = state.pendingFruit
             )
         }
     }

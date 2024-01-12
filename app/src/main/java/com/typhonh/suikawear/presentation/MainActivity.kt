@@ -37,7 +37,7 @@ import com.typhonh.suikawear.business.GameController
 import com.typhonh.suikawear.business.GameEngineViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.typhonh.suikawear.data.Container
-import com.typhonh.suikawear.data.Fruit
+import com.typhonh.suikawear.data.fruit.Fruit
 import com.typhonh.suikawear.presentation.theme.SuikaWearTheme
 
 class MainActivity : ComponentActivity() {
