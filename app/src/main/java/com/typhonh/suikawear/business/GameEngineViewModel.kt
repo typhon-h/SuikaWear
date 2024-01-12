@@ -1,6 +1,7 @@
 package com.typhonh.suikawear.business
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntSize
@@ -42,11 +43,17 @@ class GameEngineViewModel(
     }
 
     fun onRotate(rotationPixels: Float) {
-        state.pendingFruit.posX += rotationPixels
+        Log.i("", rotationPixels.toString())
+        if (rotationPixels > 0) {
+            state.pendingFruit.posX += 0.05f
+        } else if (rotationPixels < 0) {
+            state.pendingFruit.posX -= 0.05f
+        }
     }
 
-    fun onDrag(dragAmount: Offset) {
-        state.pendingFruit.posX += dragAmount.x
+    fun onDrag(position: Offset, size: IntSize) {
+        Log.i("", position.x.toString())
+        state.pendingFruit.posX = (position.x / size.width) - 0.5f
     }
 
     private fun update() {

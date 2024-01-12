@@ -31,6 +31,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.rotary.onRotaryScrollEvent
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.unit.IntSize
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.typhonh.suikawear.business.GameController
 import com.typhonh.suikawear.business.GameEngineViewModel
@@ -75,8 +76,8 @@ fun MainCanvas(
                 viewModel.onRotate(rotationPixels)
             }
 
-            override fun onDragEvent(dragAmount: Offset) {
-                viewModel.onDrag(dragAmount)
+            override fun onDragEvent(position: Offset, size: IntSize) {
+                viewModel.onDrag(position, size)
             }
         }
     }
@@ -103,8 +104,8 @@ fun MainCanvas(
         modifier = modifier.fillMaxSize(1f)
             .pointerInput(key1 = gameController) {
                  detectDragGestures(
-                     onDrag = { _, dragAmount ->
-                         gameController.onDragEvent(dragAmount)
+                     onDrag = { inputChange, _ ->
+                         gameController.onDragEvent(inputChange.position, size)
                      }
                  )
             }
