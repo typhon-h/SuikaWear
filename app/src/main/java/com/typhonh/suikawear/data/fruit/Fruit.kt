@@ -12,6 +12,7 @@ interface Fruit : UiObject {
     companion object {
         const val PENDING_X_POS = 0f
         const val PENDING_Y_POS = -0.8f
+        const val CO_EF_RESTITUTION = 0.15f
 
         fun getPendingCandidate(): Fruit {
             val candidates: List<Fruit> = listOf(

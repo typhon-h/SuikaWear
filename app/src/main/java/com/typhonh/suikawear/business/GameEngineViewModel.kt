@@ -15,6 +15,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.hypot
+import kotlin.math.sin
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 class GameEngineViewModel(
@@ -87,8 +91,32 @@ class GameEngineViewModel(
     private fun applyFruitPhysics(fruit: Fruit) {
         fruit.velY += GRAVITY
         fruit.posY += fruit.velY
-
         checkContainerCollision(fruit, state.container)
+        checkFruitCollision(fruit, state.droppedFruits.minus(fruit))
+    }
+
+    private fun checkFruitCollision(fruit: Fruit, otherFruits: Set<Fruit>) {
+        otherFruits.forEach { f ->
+            val dist = hypot(fruit.posX - f.posX, fruit.posY - f.posY)
+
+            if(dist <= fruit.radius + f.radius) {
+                val angle = atan2(f.posY - fruit.posY, f.posX - fruit.posX)
+
+                val overlap = (fruit.radius + f.radius) - dist
+                val overlapX = overlap * cos(angle) / 2
+                val overlapY = overlap * sin(angle) / 2
+
+                fruit.posX -= overlapX
+                fruit.posY -= overlapY
+
+                f.posX += overlapX
+                f.posY += overlapY
+
+                val tempVelY = fruit.velY
+                fruit.velY = f.velY * Fruit.CO_EF_RESTITUTION
+                f.velY = tempVelY * Fruit.CO_EF_RESTITUTION
+            }
+        }
     }
 
     private fun checkContainerCollision(fruit: Fruit, container: Container) {
