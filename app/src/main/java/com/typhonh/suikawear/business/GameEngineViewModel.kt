@@ -65,10 +65,14 @@ class GameEngineViewModel(
             )
     }
 
+    fun onTap() {
+        state.pendingFruit.isDropped = true
+    }
+
     private fun update() {
         state.ticks++
-
-        applyFruitPhysics(state.pendingFruit)
+        if (state.pendingFruit.isDropped)
+            applyFruitPhysics(state.pendingFruit)
 
         emitLatestState()
     }

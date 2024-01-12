@@ -6,6 +6,8 @@ interface Fruit : UiObject {
     val radius: Float
     var velY: Float
 
+    var isDropped: Boolean
+
     companion object {
         const val PENDING_X_POS = 0f
         const val PENDING_Y_POS = -0.8f

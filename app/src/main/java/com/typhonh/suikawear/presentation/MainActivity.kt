@@ -14,6 +14,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -79,6 +80,10 @@ fun MainCanvas(
             override fun onDragEvent(position: Offset, size: IntSize) {
                 viewModel.onDrag(position, size)
             }
+
+            override fun onTapEvent() {
+                viewModel.onTap()
+            }
         }
     }
 
@@ -103,11 +108,21 @@ fun MainCanvas(
     Canvas(
         modifier = modifier.fillMaxSize(1f)
             .pointerInput(key1 = gameController) {
-                 detectDragGestures(
-                     onDrag = { inputChange, _ ->
-                         gameController.onDragEvent(inputChange.position, size)
-                     }
-                 )
+                detectDragGestures(
+                    onDrag = { inputChange, _ ->
+                        gameController.onDragEvent(inputChange.position, size)
+                    },
+                    onDragEnd = {
+                        gameController.onTapEvent()
+                    }
+                )
+            }
+            .pointerInput(key1 = gameController) {
+                detectTapGestures(
+                    onTap = {
+                        gameController.onTapEvent()
+                    }
+                )
             }
             .focusRequester(focusRequester)
             .onRotaryScrollEvent {
