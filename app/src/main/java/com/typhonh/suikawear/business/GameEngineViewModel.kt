@@ -15,10 +15,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.math.atan2
-import kotlin.math.cos
-import kotlin.math.hypot
-import kotlin.math.sin
+import kotlin.math.abs
+import kotlin.math.sqrt
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 class GameEngineViewModel(
@@ -83,47 +81,111 @@ class GameEngineViewModel(
     private fun update() {
         state.ticks++
 
-        state.droppedFruits.forEach { applyFruitPhysics(it) }
+        state.droppedFruits.forEach {
+            advanceFruitPosition(it)
+            checkContainerCollision(it, state.container)
+        }
+        for(i in 0 until state.droppedFruits.size) {
+            for(j in i+1 until state.droppedFruits.size) {
+                checkFruitCollision(state.droppedFruits[i], state.droppedFruits[j])
+                checkContainerCollision(state.droppedFruits[i], state.container)
+                resolvePenetration(state.droppedFruits[i], state.droppedFruits[j])
+            }
+        }
 
         emitLatestState()
     }
 
-    private fun applyFruitPhysics(fruit: Fruit) {
-        fruit.velY += GRAVITY
+    private fun advanceFruitPosition(fruit: Fruit) {
+        val containerBottom = (state.container.height) + state.container.posY
+        if (fruit.posY + fruit.radius >= containerBottom) {
+            fruit.velY = 0f
+        } else {
+            fruit.velY += GRAVITY
+        }
         fruit.posY += fruit.velY
-        checkContainerCollision(fruit, state.container)
-        checkFruitCollision(fruit, state.droppedFruits.minus(fruit))
+
+        fruit.posX += fruit.velX
     }
 
-    private fun checkFruitCollision(fruit: Fruit, otherFruits: Set<Fruit>) {
-        otherFruits.forEach { f ->
-            val dist = hypot(fruit.posX - f.posX, fruit.posY - f.posY)
+    private fun checkFruitCollision(fruit: Fruit, otherFruit: Fruit) {
 
-            if(dist <= fruit.radius + f.radius) {
-                val angle = atan2(f.posY - fruit.posY, f.posX - fruit.posX)
+        // Calculate the distance between the two balls
+        val dx = otherFruit.posX - fruit.posX
+        val dy = otherFruit.posY - fruit.posY
+        val dist = sqrt(dx*dx + dy*dy)
 
-                val overlap = (fruit.radius + f.radius) - dist
-                val overlapX = overlap * cos(angle) / 2
-                val overlapY = overlap * sin(angle) / 2
+        // Check for collision
+        if (dist < fruit.radius + otherFruit.radius) {
+            // Calculate normal vector
+            val normalX = dx / dist
+            val normalY = dy / dist
 
-                fruit.posX -= overlapX
-                fruit.posY -= overlapY
+            // Calculate relative velocity
+            val relVelX = otherFruit.velX - fruit.velX
+            val relVelY = otherFruit.velY - fruit.velY
 
-                f.posX += overlapX
-                f.posY += overlapY
+            // Calculate relative velocity in normal direction
+            val relVelNormal = relVelX * normalX + relVelY * normalY
 
-                val tempVelY = fruit.velY
-                fruit.velY = f.velY * Fruit.CO_EF_RESTITUTION
-                f.velY = tempVelY * Fruit.CO_EF_RESTITUTION
-            }
+            // Calculate impulse
+            val impulse = (2 / (fruit.radius + otherFruit.radius)) * relVelNormal
+
+            // Update velocities after collision with energy loss
+            fruit.velX += impulse * otherFruit.radius * normalX
+            fruit.velY += impulse * otherFruit.radius * normalY
+            otherFruit.velX -= impulse * fruit.radius * normalX
+            otherFruit.velY -= impulse * fruit.radius * normalY
+
+            // Apply energy loss
+            fruit.velX *= Fruit.CO_EF_RESTITUTION
+            fruit.velY *= Fruit.CO_EF_RESTITUTION
+            otherFruit.velX *= Fruit.CO_EF_RESTITUTION
+            otherFruit.velY *= Fruit.CO_EF_RESTITUTION
         }
+    }
+
+    private fun resolvePenetration(fruit: Fruit, otherFruit: Fruit) {
+        // Calculate the distance between the two balls
+        val dx = otherFruit.posX - fruit.posX
+        val dy = otherFruit.posY - fruit.posY
+        val distance = sqrt(dx*dx + dy*dy)
+
+        // Calculate penetration depth
+        val penetrationAmount = (fruit.radius + otherFruit.radius) - distance
+
+        // Move the balls away from each other along the collision normal only if they are overlapping
+        if( penetrationAmount > 0){
+        val normalX = dx / distance
+        val normalY = dy / distance
+
+        // Move the balls along the collision normal
+        val moveX = (penetrationAmount / 2) * normalX
+        val moveY = (penetrationAmount / 2) * normalY
+
+        fruit.posX -= moveX
+        fruit.posY -= moveY
+        otherFruit.posX += moveX
+        otherFruit.posY += moveY }
     }
 
     private fun checkContainerCollision(fruit: Fruit, container: Container) {
         val containerBottom = (container.height) + container.posY
         if (fruit.posY + fruit.radius >= containerBottom) {
             fruit.posY = containerBottom - fruit.radius
-            fruit.velY *= -1 * container.coEfRestitution
+            fruit.velY = -abs(fruit.velY) * container.coEfRestitution
+        }
+
+        val containerLeft = -container.width + container.posX
+        if (fruit.posX - fruit.radius <= containerLeft) {
+            fruit.posX = containerLeft + fruit.radius
+            fruit.velX = abs(fruit.velX) * container.coEfRestitution
+        }
+
+        val containerRight = container.width - container.posX
+        if (fruit.posX + fruit.radius >= containerRight) {
+            fruit.posX = containerRight - fruit.radius
+            fruit.velX = -abs(fruit.velX) * container.coEfRestitution
         }
     }
 

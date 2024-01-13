@@ -102,7 +102,7 @@ fun MainCanvas(
 fun MainCanvas(
     container: Container,
     pendingFruit: Fruit,
-    droppedFruits: Set<Fruit>,
+    droppedFruits: List<Fruit>,
     gameController: GameController,
     modifier: Modifier = Modifier
 ) {
