@@ -107,8 +107,7 @@ class GameEngineViewModel(
 
     private fun update() {
         state.ticks++
-        world.step(UPDATE_INTERVAL.toDouble() / 2 )
-        world.step(UPDATE_INTERVAL.toDouble() / 2 )
+        world.step(UPDATE_INTERVAL.toDouble())
         emitLatestState()
     }
 
@@ -126,6 +125,6 @@ class GameEngineViewModel(
     companion object {
         private const val FPS = 30
         private const val UPDATE_INTERVAL = 1000L / FPS
-        private const val GRAVITY = 0.000005 // %s^-2
+        private const val GRAVITY = 0.000004 // %s^-2
     }
 }
