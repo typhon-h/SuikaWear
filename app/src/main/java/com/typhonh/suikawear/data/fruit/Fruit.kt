@@ -1,19 +1,21 @@
 package com.typhonh.suikawear.data.fruit
 
-import com.typhonh.suikawear.data.UiObject
+import de.chaffic.dynamics.Body
+import de.chaffic.geometry.Circle
 import kotlin.random.Random
 
-interface Fruit : UiObject {
-    val radius: Float
-    var velY: Float
-    var velX: Float
+abstract class Fruit(var radius: Double) {
 
-    var isDropped: Boolean
+    var body: Body = Body(Circle(radius), 0.0, -0.8)
+
+    var isDropped: Boolean = false
+
+    init {
+        this.body.restitution = CO_EF_RESTITUTION
+    }
 
     companion object {
-        const val PENDING_X_POS = 0f
-        const val PENDING_Y_POS = -0.8f
-        const val CO_EF_RESTITUTION = 0.8f
+        const val CO_EF_RESTITUTION = 0.8
 
         fun getPendingCandidate(): Fruit {
             val candidates: List<Fruit> = listOf(
@@ -27,3 +29,4 @@ interface Fruit : UiObject {
         }
     }
 }
+

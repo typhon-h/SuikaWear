@@ -155,7 +155,10 @@ private fun DrawScope.draw(container: Container) {
 private fun DrawScope.draw(pendingFruit: Fruit) {
     drawCircle(
         color = Color.Red,
-        center = Offset(((size.width - pendingFruit.radius * 2) / 2) + pendingFruit.posX * size.width / 2, ((size.height - pendingFruit.radius * 2) / 2) + pendingFruit.posY * size.width / 2),
-        radius = pendingFruit.radius * size.width / 2
+        center = Offset(
+            (((size.width - pendingFruit.radius * 2) / 2) + pendingFruit.body.position.x * size.width / 2).toFloat(),
+            (((size.height - pendingFruit.radius * 2) / 2) + pendingFruit.body.position.y * size.width / 2).toFloat()
+        ),
+        radius = (pendingFruit.radius * size.width / 2).toFloat()
     )
 }
