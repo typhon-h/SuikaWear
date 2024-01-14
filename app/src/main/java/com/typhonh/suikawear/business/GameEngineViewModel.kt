@@ -8,7 +8,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.typhonh.suikawear.data.GameState
 import com.typhonh.suikawear.data.fruit.Fruit
+import de.chaffic.dynamics.Body
 import de.chaffic.dynamics.World
+import de.chaffic.geometry.Polygon
 import de.chaffic.math.Vec2
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,15 +28,34 @@ class GameEngineViewModel(
 
     private val world = World(Vec2(0.0, GRAVITY))
 
-//    private val platform = Body(Polygon(state.container.width.toDouble(), state.container.height.toDouble()),
-//        state.container.posX.toDouble(), state.container.posY.toDouble())
-
+    private val borders = listOf(
+        Body( // Bottom
+            Polygon(state.container.width.toDouble(), 1.0),
+            state.container.posX.toDouble(),
+            state.container.height + state.container.posY.toDouble() + 1.0
+        ),
+        Body( // Left
+            Polygon(0.5, state.container.height.toDouble() * 2),
+            -state.container.width + state.container.posX.toDouble() - 0.5,
+            state.container.posY.toDouble()
+        ),
+        Body( // Right
+            Polygon(0.5, state.container.height.toDouble() * 2),
+            state.container.width - state.container.posX.toDouble() + 0.5,
+            state.container.posY.toDouble()
+        ),
+    )
 
 
     init {
+        borders.forEach {
+            it.density = 0.0
+            it.affectedByGravity = false
+            it.restitution = 0.0
+            world.addBody(it)
+        }
+
         viewModelScope.launch {
-//            platform.density = 0.0
-//            world.addBody(platform)
             while (true) {
                 if (state.size != IntSize.Zero ) {
                     update()
@@ -86,8 +107,8 @@ class GameEngineViewModel(
 
     private fun update() {
         state.ticks++
-        world.step(UPDATE_INTERVAL.toDouble())
-
+        world.step(UPDATE_INTERVAL.toDouble() / 2 )
+        world.step(UPDATE_INTERVAL.toDouble() / 2 )
         emitLatestState()
     }
 

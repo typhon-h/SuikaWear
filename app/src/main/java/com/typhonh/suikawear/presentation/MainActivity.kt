@@ -146,7 +146,10 @@ fun MainCanvas(
 private fun DrawScope.draw(container: Container) {
     drawRect(
         SolidColor(Color.Green),
-        topLeft = Offset(((size.width - container.width * size.width) / 2) + container.posX * size.width / 2, ((size.height - container.height * size.height) / 2) + container.posY * size.height / 2),
+        topLeft = Offset(
+            ((size.width - container.width * size.width) / 2) + container.posX * size.width / 2,
+            ((size.height - container.height * size.height) / 2) + container.posY * size.height / 2
+        ),
         size = Size(container.width * size.width, container.height * size.height),
         style = Stroke(1f)
     )

@@ -11,12 +11,11 @@ abstract class Fruit(var radius: Double) {
     var isDropped: Boolean = false
 
     init {
-        this.body.restitution = CO_EF_RESTITUTION
+        this.body.restitution = .2
+        this.body.mass = Math.PI * radius * radius
     }
 
     companion object {
-        const val CO_EF_RESTITUTION = 0.8
-
         fun getPendingCandidate(): Fruit {
             val candidates: List<Fruit> = listOf(
                 Cherry(),
