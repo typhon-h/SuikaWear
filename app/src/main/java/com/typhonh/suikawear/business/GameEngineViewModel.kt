@@ -108,7 +108,51 @@ class GameEngineViewModel(
     private fun update() {
         state.ticks++
         world.step(UPDATE_INTERVAL.toDouble())
+        tryMergeFruit()
         emitLatestState()
+    }
+
+    private fun tryMergeFruit() {
+        var i = 0
+        while (i < state.droppedFruits.size) {
+            val f1 = state.droppedFruits[i]
+
+            var j = i + 1
+            while (j < state.droppedFruits.size) {
+                val f2 = state.droppedFruits[j]
+                if(f1::class == f2::class && f1.isTouching(f2)) {
+                    val nextFruit = Fruit.getNextFruit(f1::class)
+                    if(nextFruit != null) {
+                        combineFruit(f1, f2, nextFruit)
+                    } else {
+                        clearFruit()
+                    }
+
+                    break
+                }
+                j++
+            }
+
+            i++
+        }
+    }
+
+    private fun combineFruit(f1: Fruit, f2: Fruit, nextFruit:Fruit) {
+        nextFruit.body.position.x = (f1.body.position.x + f2.body.position.x) / 2
+        nextFruit.body.position.y = (f1.body.position.y + f2.body.position.y) / 2
+        state.droppedFruits.add(nextFruit)
+        world.addBody(nextFruit.body)
+        state.droppedFruits.remove(f1)
+        state.droppedFruits.remove(f2)
+
+        world.removeBody(f1.body)
+        world.removeBody(f2.body)
+    }
+    private fun clearFruit() {
+        while (state.droppedFruits.isNotEmpty()) {
+            world.removeBody(state.droppedFruits.first().body)
+            state.droppedFruits.remove(state.droppedFruits.first())
+        }
     }
 
     private fun emitLatestState() {
