@@ -1,3 +1,5 @@
 package com.typhonh.suikawear.data.fruit
 
-class Peach : Fruit(0.206)
+import com.typhonh.suikawear.R
+
+class Peach(override var image: Int = R.drawable.peach) : Fruit(0.206)
