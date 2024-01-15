@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.pointerInput
@@ -207,6 +208,12 @@ private fun DrawScope.draw(fruit: Fruit, image: Painter) {
             )
         )
     }
+
+    //TODO: Fix the rotation (using friction??)
+    rotate((fruit.body.orientation * 50 % 360).toFloat(), Offset(
+        center.x + radius,
+        center.y + radius
+    )) {
     clipPath(path) {
         translate(center.x, center.y) {
             with(image) {
@@ -217,6 +224,7 @@ private fun DrawScope.draw(fruit: Fruit, image: Painter) {
                     )
                 )
             }
+        }
         }
     }
 }

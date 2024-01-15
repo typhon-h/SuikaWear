@@ -15,6 +15,8 @@ abstract class Fruit(var radius: Double) {
     init {
         this.body.restitution = .2
         this.body.mass = Math.PI * radius * radius
+        this.body.inertia = this.body.mass
+
     }
 
     fun isTouching(fruit: Fruit): Boolean {
