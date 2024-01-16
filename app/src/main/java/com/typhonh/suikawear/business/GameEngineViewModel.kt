@@ -87,7 +87,7 @@ class GameEngineViewModel(
     }
 
     fun onDrag(position: Offset, size: IntSize) {
-        state.pendingFruit.body.position.x = (position.x / size.width) - 0.5
+        state.pendingFruit.body.position.x = 2 * (position.x.toDouble() / size.width) - 1
 
         state.pendingFruit.body.position.x = state.pendingFruit.body.position.x
             .coerceIn(
