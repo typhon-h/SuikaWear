@@ -131,8 +131,10 @@ fun MainCanvas(
     images.value[R.drawable.pineapple] = painterResource(id = R.drawable.pineapple)
     images.value[R.drawable.melon] = painterResource(id = R.drawable.melon)
     images.value[R.drawable.watermelon] = painterResource(id = R.drawable.watermelon)
-
-//    val containerImage = painterResource(container.image)
+    images.value[R.drawable.background] = painterResource(id = R.drawable.background)
+    images.value[R.drawable.container] = painterResource(id = R.drawable.container)
+    images.value[R.drawable.container_top] = painterResource(id = R.drawable.container_top)
+    
     Canvas(
         modifier = modifier
             .fillMaxSize(1f)
@@ -160,7 +162,12 @@ fun MainCanvas(
             }
             .focusable()
     ) {
-        draw(container)
+            with(images.value[R.drawable.background]) {
+                if (this != null) {
+                    draw(Size(size.width, size.height))
+                }
+            }
+        images.value[container.image]?.let { draw(container, it) }
         images.value[pendingFruit.image]?.let { draw(pendingFruit, it) }
         droppedFruits.forEach {fruit ->
             images.value[fruit.image]?.let {
@@ -170,6 +177,8 @@ fun MainCanvas(
                 )
             }
         }
+        images.value[container.imageTop]?.let { draw(container, it) }
+
     }
 
     LaunchedEffect(Unit) {
@@ -177,7 +186,19 @@ fun MainCanvas(
     }
 }
 
-private fun DrawScope.draw(container: Container) {
+private fun DrawScope.draw(container: Container, image: Painter) {
+    val topLeft = Offset(
+        ((size.width - container.imageWidth * size.width) / 2) + container.posX * size.width / 2,
+        ((size.height - container.imageHeight * size.height) / 2) + container.posY * size.height / 2
+    )
+
+    translate (topLeft.x, topLeft.y) {
+        with(image) {
+            draw(Size(container.imageWidth * size.width, container.imageHeight * size.height))
+        }
+    }
+
+
     drawRect(
         SolidColor(Color.Green),
         topLeft = Offset(
