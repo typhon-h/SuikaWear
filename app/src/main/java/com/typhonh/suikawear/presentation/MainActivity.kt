@@ -28,9 +28,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.translate
@@ -217,17 +215,6 @@ private fun DrawScope.draw(container: Container, image: Painter) {
             draw(Size(container.imageWidth * size.width, container.imageHeight * size.height))
         }
     }
-
-
-    drawRect(
-        SolidColor(Color.Green),
-        topLeft = Offset(
-            ((size.width - container.width * size.width) / 2) + container.posX * size.width / 2,
-            ((size.height - container.height * size.height) / 2) + container.posY * size.height / 2
-        ),
-        size = Size(container.width * size.width, container.height * size.height),
-        style = Stroke(1f)
-    )
 }
 
 private fun DrawScope.draw(fruit: Fruit, image: Painter) {
