@@ -167,7 +167,11 @@ fun MainCanvas(
                     draw(Size(size.width, size.height))
                 }
             }
+
         images.value[container.image]?.let { draw(container, it) }
+
+        drawGuide(pendingFruit, container)
+
         images.value[pendingFruit.image]?.let { draw(pendingFruit, it) }
         droppedFruits.forEach {fruit ->
             images.value[fruit.image]?.let {
@@ -184,6 +188,22 @@ fun MainCanvas(
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
     }
+}
+
+private fun DrawScope.drawGuide(pendingFruit: Fruit, container: Container) {
+    val guideWidth = 0.0025f
+    drawRect( //TODO: simplify
+        Color.White,
+        topLeft = Offset(
+            (((size.width - guideWidth * 2) / 2) + pendingFruit.body.position.x * size.width / 2 - guideWidth * size.width / 2).toFloat(),
+            (((size.height - guideWidth * 2) / 2) + pendingFruit.body.position.y * size.height / 2 - guideWidth * size.width / 2).toFloat()
+        ),
+        size = Size(guideWidth * size.width,
+            (container.height * size.height) + ((size.height - container.height * size.height) / 2)
+                    + container.posY * size.height / 2
+                    - (((size.height - guideWidth * 2) / 2) + pendingFruit.body.position.y * size.height / 2 - guideWidth * size.width / 2).toFloat()
+        )
+    )
 }
 
 private fun DrawScope.draw(container: Container, image: Painter) {
