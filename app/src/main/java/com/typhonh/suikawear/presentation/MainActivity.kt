@@ -140,9 +140,6 @@ fun MainCanvas(
                 detectDragGestures(
                     onDrag = { inputChange, _ ->
                         gameController.onDragEvent(inputChange.position, size)
-                    },
-                    onDragEnd = {
-                        gameController.onTapEvent()
                     }
                 )
             }
