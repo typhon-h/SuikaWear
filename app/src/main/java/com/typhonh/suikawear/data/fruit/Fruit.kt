@@ -30,6 +30,7 @@ abstract class Fruit(var radius: Double) {
         fun getPendingCandidate(): Fruit {
             val candidates: List<Fruit> = listOf(
                 Cherry(),
+                Strawberry(),
                 Grape(),
                 Satsuma(),
                 Persimmon()
