@@ -115,6 +115,7 @@ class GameEngineViewModel(
 
     private fun tryMergeFruit() {
         var i = 0
+        var largestFruit: Fruit? = null
         while (i < state.droppedFruits.size) {
             val f1 = state.droppedFruits[i]
 
@@ -123,6 +124,8 @@ class GameEngineViewModel(
                 val f2 = state.droppedFruits[j]
                 if(f1::class == f2::class && f1.isTouching(f2)) {
                     val nextFruit = Fruit.getNextFruit(f1::class)
+                    largestFruit =  if (largestFruit == null || f1.radius > largestFruit.radius) f1 else largestFruit
+
                     if(nextFruit != null) {
                         combineFruit(f1, f2, nextFruit)
                     } else {
@@ -136,6 +139,8 @@ class GameEngineViewModel(
 
             i++
         }
+
+        state.score += largestFruit?.points ?: 0
     }
 
     private fun combineFruit(f1: Fruit, f2: Fruit, nextFruit:Fruit) {
@@ -163,7 +168,8 @@ class GameEngineViewModel(
                 container = state.container,
                 pendingFruit = state.pendingFruit,
                 nextFruit = state.nextFruit,
-                droppedFruits = state.droppedFruits
+                droppedFruits = state.droppedFruits,
+                score = state.score
             )
         }
     }

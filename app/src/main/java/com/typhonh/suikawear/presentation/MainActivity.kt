@@ -26,9 +26,11 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.translate
@@ -38,11 +40,18 @@ import androidx.compose.ui.input.rotary.onRotaryScrollEvent
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.TextUnitType
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.typhonh.suikawear.business.GameController
 import com.typhonh.suikawear.business.GameEngineViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.wear.compose.material.MaterialTheme
 import com.typhonh.suikawear.R
 import com.typhonh.suikawear.data.Container
 import com.typhonh.suikawear.data.fruit.Fruit
@@ -99,6 +108,7 @@ fun MainCanvas(
         pendingFruit = uiState.value.pendingFruit,
         nextFruit = uiState.value.nextFruit,
         droppedFruits = uiState.value.droppedFruits,
+        score = uiState.value.score,
         gameController = gameController,
         modifier = modifier.onSizeChanged {
             viewModel.onCanvasSizeChange(it, isRound)
@@ -112,6 +122,7 @@ fun MainCanvas(
     pendingFruit: Fruit,
     nextFruit: Fruit,
     droppedFruits: List<Fruit>,
+    score: Int,
     gameController: GameController,
     modifier: Modifier = Modifier
 ) {
@@ -135,6 +146,9 @@ fun MainCanvas(
     images.value[R.drawable.container] = painterResource(id = R.drawable.container)
     images.value[R.drawable.container_top] = painterResource(id = R.drawable.container_top)
     images.value[R.drawable.next_frame] = painterResource(id = R.drawable.next_frame)
+
+    val textMeasurer = rememberTextMeasurer()
+    var scoreFont = MaterialTheme.typography.title1
 
     Canvas(
         modifier = modifier
@@ -173,6 +187,8 @@ fun MainCanvas(
             drawNextFruit(nextFruit, it1, it)
         } }
 
+        drawScore(score, textMeasurer, scoreFont)
+
         drawGuide(pendingFruit, container)
 
         images.value[pendingFruit.image]?.let { draw(pendingFruit, it) }
@@ -193,14 +209,46 @@ fun MainCanvas(
     }
 }
 
+private fun DrawScope.drawScore(score: Int, textMeasurer: TextMeasurer, font: TextStyle) {
+
+    val textToDraw = score.toString()
+
+    val style = font.copy(
+        brush = Brush.verticalGradient(
+        colors = listOf(Color(250, 250, 220), Color(240, 200, 30))
+    ),)
+
+    val styleOutline = style.copy(
+        color = Color(150, 100, 50),
+        fontSize = TextUnit(style.fontSize.value + 0.1f, TextUnitType.Sp),
+        drawStyle = Stroke(
+            width = style.fontSize.value / 8
+        )
+    )
+
+    val textLayoutResult = textMeasurer.measure(textToDraw, style)
+
+    listOf(styleOutline, style).forEach {
+        drawText(
+            textMeasurer = textMeasurer,
+            text = textToDraw,
+            style = it,
+            topLeft = Offset(
+                x = (((center.x - textLayoutResult.size.width / 2) + 0.0 * size.width / 2).toFloat()),
+                y = ((center.y - textLayoutResult.size.height / 2) + 0.87 * size.height / 2).toFloat()
+            )
+        )
+    }
+}
+
 private fun DrawScope.drawNextFruit(nextFruit: Fruit, fruitImage:Painter, frame: Painter) {
     val frameCenter = Offset(
         (((size.width - Fruit.NEXT_FRAME_RADIUS * 2) / 2) + Fruit.NEXT_X * size.width / 2 - Fruit.NEXT_FRAME_RADIUS * size.width / 2).toFloat(),
-        (((size.height - Fruit.NEXT_FRAME_RADIUS * 2) / 2) + Fruit.NEXT_Y * size.height / 2 - Fruit.NEXT_FRAME_RADIUS * size.width / 2).toFloat()
+        (((size.height - Fruit.NEXT_FRAME_RADIUS * 2) / 2) + Fruit.NEXT_Y * size.height / 2 - Fruit.NEXT_FRAME_RADIUS * size.height / 2).toFloat()
     )
     val fruitCenter = Offset(
         (((size.width - nextFruit.radius * 2) / 2) + Fruit.NEXT_X * size.width / 2 - nextFruit.radius * size.width / 2).toFloat(),
-        (((size.height - nextFruit.radius * 2) / 2) + Fruit.NEXT_Y * size.height / 2 - nextFruit.radius * size.width / 2).toFloat()
+        (((size.height - nextFruit.radius * 2) / 2) + Fruit.NEXT_Y * size.height / 2 - nextFruit.radius * size.height / 2).toFloat()
     )
     translate(frameCenter.x, frameCenter.y) {
         with(frame) {
@@ -221,12 +269,12 @@ private fun DrawScope.drawGuide(pendingFruit: Fruit, container: Container) {
         Color.White,
         topLeft = Offset(
             (((size.width - guideWidth * 2) / 2) + pendingFruit.body.position.x * size.width / 2 - guideWidth * size.width / 2).toFloat(),
-            (((size.height - guideWidth * 2) / 2) + pendingFruit.body.position.y * size.height / 2 - guideWidth * size.width / 2).toFloat()
+            (((size.height - guideWidth * 2) / 2) + pendingFruit.body.position.y * size.height / 2 - guideWidth * size.height / 2).toFloat()
         ),
         size = Size(guideWidth * size.width,
             (container.height * size.height) + ((size.height - container.height * size.height) / 2)
                     + container.posY * size.height / 2
-                    - (((size.height - guideWidth * 2) / 2) + pendingFruit.body.position.y * size.height / 2 - guideWidth * size.width / 2).toFloat()
+                    - (((size.height - guideWidth * 2) / 2) + pendingFruit.body.position.y * size.height / 2 - guideWidth * size.height / 2).toFloat()
         )
     )
 }

@@ -8,6 +8,7 @@ import kotlin.reflect.KClass
 
 abstract class Fruit(var radius: Double) {
     abstract var image: Int
+    abstract var points: Int
     var body: Body = Body(Circle(radius),.0, -0.8)
 
     var isDropped: Boolean = false
