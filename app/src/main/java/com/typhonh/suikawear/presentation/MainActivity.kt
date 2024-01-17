@@ -6,6 +6,10 @@
 
 package com.typhonh.suikawear.presentation
 
+import android.graphics.Paint
+import android.graphics.Path
+import android.graphics.RectF
+import android.graphics.Typeface
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -28,12 +32,13 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.rotary.onRotaryScrollEvent
@@ -47,6 +52,7 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.typhonh.suikawear.business.GameController
 import com.typhonh.suikawear.business.GameEngineViewModel
@@ -262,6 +268,26 @@ private fun DrawScope.drawNextFruit(nextFruit: Fruit, fruitImage:Painter, frame:
             draw(Size((nextFruit.radius * size.width).toFloat(), (nextFruit.radius * size.height).toFloat()))
         }
     }
+
+    drawIntoCanvas {
+        val path = Path().apply {
+            addArc(
+                RectF(frameCenter.x, frameCenter.y, frameCenter.x + Fruit.NEXT_FRAME_RADIUS * size.width, frameCenter.y + Fruit.NEXT_FRAME_RADIUS * size.height)
+            , -150f, 115f)
+        }
+        it.nativeCanvas.drawTextOnPath(
+            "Up Next",
+            path,
+            0f,
+            -2.5f,
+            Paint().apply {
+                textSize = 10.sp.toPx()
+                textAlign = Paint.Align.CENTER
+                color = Color(250, 250, 220).hashCode()
+                typeface = Typeface.DEFAULT_BOLD
+            }
+        )
+    }
 }
 
 private fun DrawScope.drawGuide(pendingFruit: Fruit, container: Container, image: Painter) {
@@ -313,7 +339,7 @@ private fun DrawScope.draw(fruit: Fruit, image: Painter) {
     )
 
 
-    val path = Path().apply {
+    val path = androidx.compose.ui.graphics.Path().apply {
         addOval(
             Rect(
                 Offset(
