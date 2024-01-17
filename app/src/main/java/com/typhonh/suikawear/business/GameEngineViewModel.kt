@@ -101,7 +101,8 @@ class GameEngineViewModel(
         val oldX = state.pendingFruit.body.position.x
         world.addBody(state.pendingFruit.body)
         state.droppedFruits.add(state.pendingFruit)
-        state.pendingFruit = Fruit.getPendingCandidate()
+        state.pendingFruit = state.nextFruit
+        state.nextFruit = Fruit.getPendingCandidate()
         state.pendingFruit.body.position.x = oldX
     }
 
@@ -161,6 +162,7 @@ class GameEngineViewModel(
                 ticks = state.ticks,
                 container = state.container,
                 pendingFruit = state.pendingFruit,
+                nextFruit = state.nextFruit,
                 droppedFruits = state.droppedFruits
             )
         }

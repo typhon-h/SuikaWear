@@ -97,6 +97,7 @@ fun MainCanvas(
     MainCanvas(
         container = uiState.value.container,
         pendingFruit = uiState.value.pendingFruit,
+        nextFruit = uiState.value.nextFruit,
         droppedFruits = uiState.value.droppedFruits,
         gameController = gameController,
         modifier = modifier.onSizeChanged {
@@ -109,6 +110,7 @@ fun MainCanvas(
 fun MainCanvas(
     container: Container,
     pendingFruit: Fruit,
+    nextFruit: Fruit,
     droppedFruits: List<Fruit>,
     gameController: GameController,
     modifier: Modifier = Modifier
@@ -132,7 +134,8 @@ fun MainCanvas(
     images.value[R.drawable.background] = painterResource(id = R.drawable.background)
     images.value[R.drawable.container] = painterResource(id = R.drawable.container)
     images.value[R.drawable.container_top] = painterResource(id = R.drawable.container_top)
-    
+    images.value[R.drawable.next_frame] = painterResource(id = R.drawable.next_frame)
+
     Canvas(
         modifier = modifier
             .fillMaxSize(1f)
@@ -165,6 +168,11 @@ fun MainCanvas(
 
         images.value[container.image]?.let { draw(container, it) }
 
+        images.value[R.drawable.next_frame]?.let {
+            images.value[nextFruit.image]?.let { it1 ->
+            drawNextFruit(nextFruit, it1, it)
+        } }
+
         drawGuide(pendingFruit, container)
 
         images.value[pendingFruit.image]?.let { draw(pendingFruit, it) }
@@ -182,6 +190,28 @@ fun MainCanvas(
 
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
+    }
+}
+
+private fun DrawScope.drawNextFruit(nextFruit: Fruit, fruitImage:Painter, frame: Painter) {
+    val frameCenter = Offset(
+        (((size.width - Fruit.NEXT_FRAME_RADIUS * 2) / 2) + Fruit.NEXT_X * size.width / 2 - Fruit.NEXT_FRAME_RADIUS * size.width / 2).toFloat(),
+        (((size.height - Fruit.NEXT_FRAME_RADIUS * 2) / 2) + Fruit.NEXT_Y * size.height / 2 - Fruit.NEXT_FRAME_RADIUS * size.width / 2).toFloat()
+    )
+    val fruitCenter = Offset(
+        (((size.width - nextFruit.radius * 2) / 2) + Fruit.NEXT_X * size.width / 2 - nextFruit.radius * size.width / 2).toFloat(),
+        (((size.height - nextFruit.radius * 2) / 2) + Fruit.NEXT_Y * size.height / 2 - nextFruit.radius * size.width / 2).toFloat()
+    )
+    translate(frameCenter.x, frameCenter.y) {
+        with(frame) {
+                draw(Size(Fruit.NEXT_FRAME_RADIUS * size.width, Fruit.NEXT_FRAME_RADIUS * size.height))
+        }
+    }
+
+    translate(fruitCenter.x, fruitCenter.y) {
+        with(fruitImage) {
+            draw(Size((nextFruit.radius * size.width).toFloat(), (nextFruit.radius * size.height).toFloat()))
+        }
     }
 }
 
