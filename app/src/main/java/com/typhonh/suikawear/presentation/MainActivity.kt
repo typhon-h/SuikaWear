@@ -146,9 +146,10 @@ fun MainCanvas(
     images.value[R.drawable.container] = painterResource(id = R.drawable.container)
     images.value[R.drawable.container_top] = painterResource(id = R.drawable.container_top)
     images.value[R.drawable.next_frame] = painterResource(id = R.drawable.next_frame)
+    images.value[R.drawable.cloud] = painterResource(id = R.drawable.cloud)
 
     val textMeasurer = rememberTextMeasurer()
-    var scoreFont = MaterialTheme.typography.title1
+    val scoreFont = MaterialTheme.typography.title1
 
     Canvas(
         modifier = modifier
@@ -189,7 +190,7 @@ fun MainCanvas(
 
         drawScore(score, textMeasurer, scoreFont)
 
-        drawGuide(pendingFruit, container)
+        images.value[R.drawable.cloud]?.let { drawGuide(pendingFruit, container, it) }
 
         images.value[pendingFruit.image]?.let { draw(pendingFruit, it) }
         droppedFruits.forEach {fruit ->
@@ -263,7 +264,7 @@ private fun DrawScope.drawNextFruit(nextFruit: Fruit, fruitImage:Painter, frame:
     }
 }
 
-private fun DrawScope.drawGuide(pendingFruit: Fruit, container: Container) {
+private fun DrawScope.drawGuide(pendingFruit: Fruit, container: Container, image: Painter) {
     val guideWidth = 0.0025f
     drawRect( //TODO: simplify
         Color.White,
@@ -277,6 +278,18 @@ private fun DrawScope.drawGuide(pendingFruit: Fruit, container: Container) {
                     - (((size.height - guideWidth * 2) / 2) + pendingFruit.body.position.y * size.height / 2 - guideWidth * size.height / 2).toFloat()
         )
     )
+
+    //TODO: extract these values to objects/constants
+    val topLeft = Offset(
+        (((size.width - 0.02f * size.width) / 2) + pendingFruit.body.position.x * size.width / 2).toFloat(),
+        (((size.height - 0.21f * size.height) / 2) + pendingFruit.body.position.y * size.height / 2).toFloat()
+    )
+
+    translate (topLeft.x, topLeft.y) {
+        with(image) {
+            draw(Size(0.165f * size.width, 0.118f * size.height))
+        }
+    }
 }
 
 private fun DrawScope.draw(container: Container, image: Painter) {
