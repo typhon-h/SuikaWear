@@ -61,11 +61,7 @@ class GameEngineViewModel(
             state.pendingFruit.body.position.x -= 0.05f
         }
 
-        state.pendingFruit.body.position.x = state.pendingFruit.body.position.x
-            .coerceIn(
-                -state.container.width + state.pendingFruit.radius,
-                state.container.width - state.pendingFruit.radius
-            )
+        clampPendingFruit()
     }
 
     fun onDrag(position: Offset, size: IntSize) {
@@ -74,11 +70,7 @@ class GameEngineViewModel(
         }
         state.pendingFruit.body.position.x = 2 * (position.x.toDouble() / size.width) - 1
 
-        state.pendingFruit.body.position.x = state.pendingFruit.body.position.x
-            .coerceIn(
-                -state.container.width + state.pendingFruit.radius,
-                state.container.width - state.pendingFruit.radius
-            )
+        clampPendingFruit()
     }
 
     fun onTap() {
@@ -115,6 +107,7 @@ class GameEngineViewModel(
             state.pendingFruit = state.nextFruit
             state.nextFruit = Fruit.getPendingCandidate()
             state.pendingFruit.body.position.x = oldX
+            clampPendingFruit()
         }
     }
 
@@ -177,6 +170,14 @@ class GameEngineViewModel(
                 score = state.score
             )
         }
+    }
+
+    private fun clampPendingFruit() {
+        state.pendingFruit.body.position.x = state.pendingFruit.body.position.x
+            .coerceIn(
+                -state.container.width + state.pendingFruit.radius,
+                state.container.width - state.pendingFruit.radius
+            )
     }
 
     companion object {
