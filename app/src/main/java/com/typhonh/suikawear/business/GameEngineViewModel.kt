@@ -8,9 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.typhonh.suikawear.data.GameState
 import com.typhonh.suikawear.data.fruit.Fruit
-import de.chaffic.dynamics.Body
 import de.chaffic.dynamics.World
-import de.chaffic.geometry.Polygon
 import de.chaffic.math.Vec2
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,27 +26,8 @@ class GameEngineViewModel(
 
     private val world = World(Vec2(0.0, GRAVITY))
 
-    private val borders = listOf(
-        Body( // Bottom
-            Polygon(state.container.width.toDouble(), 1.0),
-            state.container.posX.toDouble(),
-            state.container.height + state.container.posY.toDouble() + 1.0
-        ),
-        Body( // Left
-            Polygon(0.5, state.container.height.toDouble() * 2),
-            -state.container.width + state.container.posX.toDouble() - 0.5,
-            state.container.posY.toDouble()
-        ),
-        Body( // Right
-            Polygon(0.5, state.container.height.toDouble() * 2),
-            state.container.width - state.container.posX.toDouble() + 0.5,
-            state.container.posY.toDouble()
-        ),
-    )
-
-
     init {
-        borders.forEach {
+        listOf(state.container.bottom, state.container.left, state.container.right).forEach {
             it.density = 0.0
             it.affectedByGravity = false
             it.restitution = 0.0
@@ -73,6 +52,9 @@ class GameEngineViewModel(
     }
 
     fun onRotate(rotationPixels: Float) {
+        if(state.pendingFruit.isDropped) {
+            return
+        }
         if (rotationPixels > 0) {
             state.pendingFruit.body.position.x += 0.05f
         } else if (rotationPixels < 0) {
@@ -87,6 +69,9 @@ class GameEngineViewModel(
     }
 
     fun onDrag(position: Offset, size: IntSize) {
+        if(state.pendingFruit.isDropped) {
+            return
+        }
         state.pendingFruit.body.position.x = 2 * (position.x.toDouble() / size.width) - 1
 
         state.pendingFruit.body.position.x = state.pendingFruit.body.position.x
@@ -97,20 +82,40 @@ class GameEngineViewModel(
     }
 
     fun onTap() {
+        if(state.pendingFruit.isDropped) {
+            return
+        }
         state.pendingFruit.isDropped = true
-        val oldX = state.pendingFruit.body.position.x
         world.addBody(state.pendingFruit.body)
         state.droppedFruits.add(state.pendingFruit)
-        state.pendingFruit = state.nextFruit
-        state.nextFruit = Fruit.getPendingCandidate()
-        state.pendingFruit.body.position.x = oldX
     }
 
     private fun update() {
         state.ticks++
         world.step(UPDATE_INTERVAL.toDouble())
+        checkDroppedFruit()
         tryMergeFruit()
         emitLatestState()
+    }
+
+    private fun checkDroppedFruit() {
+        if(!state.pendingFruit.isDropped) {
+            return
+        }
+        var fallen = state.pendingFruit.body.position.y >= state.container.bottom.position.y - state.container.height - state.pendingFruit.radius
+        for(fruit in state.droppedFruits.minus(state.pendingFruit)) {
+            if(fruit.isTouching(state.pendingFruit) || fallen) {
+                fallen = true
+                break
+            }
+        }
+
+        if(fallen) {
+            val oldX = state.pendingFruit.body.position.x
+            state.pendingFruit = state.nextFruit
+            state.nextFruit = Fruit.getPendingCandidate()
+            state.pendingFruit.body.position.x = oldX
+        }
     }
 
     private fun tryMergeFruit() {

@@ -296,19 +296,19 @@ private fun DrawScope.drawGuide(pendingFruit: Fruit, container: Container, image
         Color.White,
         topLeft = Offset(
             (((size.width - guideWidth * 2) / 2) + pendingFruit.body.position.x * size.width / 2 - guideWidth * size.width / 2).toFloat(),
-            (((size.height - guideWidth * 2) / 2) + pendingFruit.body.position.y * size.height / 2 - guideWidth * size.height / 2).toFloat()
+            (((size.height - guideWidth * 2) / 2) + (Fruit.PENDING_Y - 0.1) * size.height / 2 - guideWidth * size.height / 2).toFloat()
         ),
         size = Size(guideWidth * size.width,
             (container.height * size.height) + ((size.height - container.height * size.height) / 2)
                     + container.posY * size.height / 2
-                    - (((size.height - guideWidth * 2) / 2) + pendingFruit.body.position.y * size.height / 2 - guideWidth * size.height / 2).toFloat()
+                    - (((size.height - guideWidth * 2) / 2) + (Fruit.PENDING_Y - 0.1) * size.height / 2 - guideWidth * size.height / 2).toFloat()
         )
     )
 
     //TODO: extract these values to objects/constants
     val topLeft = Offset(
         (((size.width - 0.02f * size.width) / 2) + pendingFruit.body.position.x * size.width / 2).toFloat(),
-        (((size.height - 0.21f * size.height) / 2) + pendingFruit.body.position.y * size.height / 2).toFloat()
+        (((size.height - 0.21f * size.height) / 2) + Fruit.PENDING_Y * size.height / 2).toFloat()
     )
 
     translate (topLeft.x, topLeft.y) {

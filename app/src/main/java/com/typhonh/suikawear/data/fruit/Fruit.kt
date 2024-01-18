@@ -9,7 +9,7 @@ import kotlin.reflect.KClass
 abstract class Fruit(var radius: Double) {
     abstract var image: Int
     abstract var points: Int
-    var body: Body = Body(Circle(radius),.0, -0.8)
+    var body: Body = Body(Circle(radius),PENDING_X, PENDING_Y)
 
     var isDropped: Boolean = false
 
@@ -30,6 +30,8 @@ abstract class Fruit(var radius: Double) {
     companion object {
         const val NEXT_X = 0.8
         const val NEXT_Y = 0.0
+        const val PENDING_X = 0.0
+        const val PENDING_Y = -0.8
         const val NEXT_FRAME_RADIUS = 0.171f
         fun getPendingCandidate(): Fruit {
             val candidates: List<Fruit> = listOf(
