@@ -87,7 +87,17 @@ class GameEngineViewModel(
         world.step(UPDATE_INTERVAL.toDouble())
         checkDroppedFruit()
         tryMergeFruit()
+        checkEndCondition()
         emitLatestState()
+    }
+
+    private fun checkEndCondition() {
+        for(fruit in state.droppedFruits.minus(state.pendingFruit)) {
+            if(fruit.body.position.y <= state.container.posY - state.container.height + state.pendingFruit.radius) {
+                state.score = 0
+                clearFruit()
+            }
+        }
     }
 
     private fun checkDroppedFruit() {
