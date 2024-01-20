@@ -6,6 +6,12 @@ import android.graphics.RectF
 import android.graphics.Typeface
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -13,6 +19,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -104,6 +111,16 @@ fun GameCanvas(
     val textMeasurer = rememberTextMeasurer()
     val scoreFont = MaterialTheme.typography.title1
 
+    val infiniteTransition = rememberInfiniteTransition(label = "Floating")
+    val floatingOffset by infiniteTransition.animateFloat(
+        initialValue = -0.025f,
+        targetValue = 0.025f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ), label = "Floating"
+    )
+
     Canvas(
         modifier = modifier
             .fillMaxSize(1f)
@@ -141,7 +158,7 @@ fun GameCanvas(
         // Draw Next Fruit
         images[R.drawable.next_frame]?.let {
             images[nextFruit.image]?.let { it1 ->
-                drawNextFruit(nextFruit, it1, it)
+                drawNextFruit(nextFruit, it1, it, floatingOffset)
             } }
 
         // Draw Score
@@ -248,8 +265,15 @@ private fun DrawScope.calcSize(width: Float, height: Float): Size {
     return Size(width * size.width, height * size.height)
 }
 
-private fun DrawScope.drawNextFruit(nextFruit: Fruit, fruitImage: Painter, frame: Painter) {
+private fun DrawScope.drawNextFruit(nextFruit: Fruit, fruitImage: Painter, frame: Painter, posOffset: Float) {
     val frameCenter = calcCenterOffset(
+        Fruit.NEXT_FRAME_RADIUS,
+        Fruit.NEXT_FRAME_RADIUS,
+        Fruit.NEXT_X.toFloat(),
+        Fruit.NEXT_Y.toFloat() + posOffset
+    )
+
+    val textCenter = calcCenterOffset(
         Fruit.NEXT_FRAME_RADIUS,
         Fruit.NEXT_FRAME_RADIUS,
         Fruit.NEXT_X.toFloat(),
@@ -260,7 +284,7 @@ private fun DrawScope.drawNextFruit(nextFruit: Fruit, fruitImage: Painter, frame
         nextFruit.radius.toFloat(),
         nextFruit.radius.toFloat(),
         Fruit.NEXT_X.toFloat(),
-        Fruit.NEXT_Y.toFloat()
+        Fruit.NEXT_Y.toFloat() + posOffset
     )
 
     translate(frameCenter.x, frameCenter.y) {
@@ -279,10 +303,10 @@ private fun DrawScope.drawNextFruit(nextFruit: Fruit, fruitImage: Painter, frame
         val path = Path().apply {
             addArc(
                 RectF(
-                    frameCenter.x,
-                    frameCenter.y,
-                    frameCenter.x + Fruit.NEXT_FRAME_RADIUS * size.width,
-                    frameCenter.y + Fruit.NEXT_FRAME_RADIUS * size.height
+                    textCenter.x,
+                    textCenter.y,
+                    textCenter.x + Fruit.NEXT_FRAME_RADIUS * size.width,
+                    textCenter.y + Fruit.NEXT_FRAME_RADIUS * size.height
                 ),
                 -150f,
                 115f
