@@ -123,7 +123,7 @@ fun GameCanvas(
 
     val cloudWidth by infiniteTransition.animateFloat(
         initialValue = 0f,
-        targetValue = 0.003f,
+        targetValue = 0.005f,
         animationSpec = infiniteRepeatable(
             animation = tween(500, easing = LinearEasing),
             repeatMode = RepeatMode.Reverse
