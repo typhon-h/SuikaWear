@@ -136,7 +136,7 @@ fun GameCanvas(
         }
 
         // Draw Container
-        images[container.image]?.let { draw(container, it) }
+        images[container.image]?.let { drawContainer(container, it) }
 
         // Draw Next Fruit
         images[R.drawable.next_frame]?.let {
@@ -151,12 +151,12 @@ fun GameCanvas(
         images[R.drawable.cloud]?.let { drawGuide(pendingFruit, container, it) }
 
         // Draw Pending Fruit
-        images[pendingFruit.image]?.let { draw(pendingFruit, it) }
+        images[pendingFruit.image]?.let { drawFruit(pendingFruit, it) }
 
         // Draw Dropped Fruits
         droppedFruits.forEach {fruit ->
             images[fruit.image]?.let {
-                draw(
+                drawFruit(
                     fruit,
                     it
                 )
@@ -164,7 +164,7 @@ fun GameCanvas(
         }
 
         // Draw Container Top
-        images[container.imageTop]?.let { draw(container, it) }
+        images[container.imageTop]?.let { drawContainer(container, it) }
 
     }
 
@@ -213,11 +213,19 @@ private fun DrawScope.drawScore(score: Int, textMeasurer: TextMeasurer, font: Te
         )
     )
 
+    val textLayoutResult = textMeasurer.measure(textToDraw, style)
+
     listOf(styleOutline, style).forEach {
         drawText(
             textMeasurer = textMeasurer,
             text = textToDraw,
-            style = it
+            style = it,
+            topLeft = calcTopLeftOffset(
+                textLayoutResult.size.width.toFloat() / size.width,
+                textLayoutResult.size.height.toFloat() / size.width,
+                0f,
+                0.87f
+            )
         )
     }
 }
@@ -325,7 +333,7 @@ private fun DrawScope.drawGuide(pendingFruit: Fruit, container: Container, image
     }
 }
 
-private fun DrawScope.draw(container: Container, image: Painter) {
+private fun DrawScope.drawContainer(container: Container, image: Painter) {
     val topLeft = calcTopLeftOffset(
         container.imageWidth,
         container.imageHeight,
@@ -340,7 +348,7 @@ private fun DrawScope.draw(container: Container, image: Painter) {
     }
 }
 
-private fun DrawScope.draw(fruit: Fruit, image: Painter) {
+private fun DrawScope.drawFruit(fruit: Fruit, image: Painter) {
     val radius = (fruit.radius * size.width / 2).toFloat()
     val center = calcCenterOffset(
         fruit.radius.toFloat(),
