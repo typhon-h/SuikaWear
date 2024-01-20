@@ -79,16 +79,6 @@ class GameEngineViewModel(
         state.droppedFruits.add(state.pendingFruit)
     }
 
-    private fun update() {
-        state.ticks++
-        world.step(UPDATE_INTERVAL.toDouble() /  2)
-        world.step(UPDATE_INTERVAL.toDouble() /  2)
-        checkDroppedFruit()
-        tryMergeFruit()
-        checkEndCondition()
-        emitLatestState()
-    }
-
     private fun checkEndCondition() {
         for(fruit in state.droppedFruits.minus(state.pendingFruit)) {
             if(fruit.body.position.y <= state.container.posY - state.container.height + state.pendingFruit.radius) {
@@ -161,6 +151,7 @@ class GameEngineViewModel(
         world.removeBody(f1.body)
         world.removeBody(f2.body)
     }
+
     private fun clearFruit() {
         while (state.droppedFruits.isNotEmpty()) {
             world.removeBody(state.droppedFruits.first().body)
@@ -187,6 +178,15 @@ class GameEngineViewModel(
                 -state.container.width + state.pendingFruit.radius,
                 state.container.width - state.pendingFruit.radius
             )
+    }
+
+    private fun update() {
+        state.ticks++
+        world.step(UPDATE_INTERVAL.toDouble())
+        checkDroppedFruit()
+        tryMergeFruit()
+        checkEndCondition()
+        emitLatestState()
     }
 
     companion object {
