@@ -129,9 +129,9 @@ class GameEngineViewModel(
             var j = i + 1
             while (j < state.droppedFruits.size) {
                 val f2 = state.droppedFruits[j]
-                if(f1::class == f2::class && f1.isTouching(f2)) {
+                if(f1.canMergeWith(f2)) {
                     val nextFruit = Fruit.getNextFruit(f1::class)
-                    largestFruit =  if (largestFruit == null || f1.radius > largestFruit.radius) f1 else largestFruit
+                    largestFruit = largestFruit?.takeIf { f1.radius > it.radius } ?: f1
 
                     if(nextFruit != null) {
                         combineFruit(f1, f2, nextFruit)

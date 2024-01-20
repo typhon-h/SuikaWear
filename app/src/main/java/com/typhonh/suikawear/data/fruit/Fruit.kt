@@ -24,6 +24,10 @@ abstract class Fruit(var radius: Double) {
         return dist <= this.radius + fruit.radius
     }
 
+    fun canMergeWith(fruit: Fruit): Boolean {
+        return this::class == fruit::class && this.isTouching(fruit)
+    }
+
     companion object {
         const val NEXT_X = 0.8
         const val NEXT_Y = 0.0
