@@ -121,6 +121,15 @@ fun GameCanvas(
         ), label = "Floating"
     )
 
+    val cloudWidth by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 0.003f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(500, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ), label = "Floating"
+    )
+
     Canvas(
         modifier = modifier
             .fillMaxSize(1f)
@@ -165,7 +174,7 @@ fun GameCanvas(
         drawScore(score, textMeasurer, scoreFont)
 
         // Draw Cloud
-        images[R.drawable.cloud]?.let { drawGuide(pendingFruit, container, it) }
+        images[R.drawable.cloud]?.let { drawGuide(pendingFruit, container, it, cloudWidth) }
 
         // Draw Pending Fruit
         images[pendingFruit.image]?.let { drawFruit(pendingFruit, it) }
@@ -327,7 +336,12 @@ private fun DrawScope.drawNextFruit(nextFruit: Fruit, fruitImage: Painter, frame
     }
 }
 
-private fun DrawScope.drawGuide(pendingFruit: Fruit, container: Container, image: Painter) {
+private fun DrawScope.drawGuide(
+    pendingFruit: Fruit,
+    container: Container,
+    image: Painter,
+    widthScale: Float
+) {
     val guideWidth = 0.0025f
     drawRect(
         Color.White,
@@ -352,7 +366,7 @@ private fun DrawScope.drawGuide(pendingFruit: Fruit, container: Container, image
 
     translate (topLeft.x, topLeft.y) {
         with(image) {
-            draw(calcSize(0.165f, 0.118f))
+            draw(calcSize(0.165f + widthScale, 0.118f))
         }
     }
 }
