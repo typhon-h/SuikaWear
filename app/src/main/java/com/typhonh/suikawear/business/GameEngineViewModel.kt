@@ -28,9 +28,6 @@ class GameEngineViewModel(
 
     init {
         listOf(state.container.bottom, state.container.left, state.container.right).forEach {
-            it.density = 0.0
-            it.affectedByGravity = false
-            it.restitution = 0.0
             world.addBody(it)
         }
 
@@ -106,6 +103,7 @@ class GameEngineViewModel(
             return
         }
         var fallen = state.pendingFruit.body.position.y >= state.container.bottom.position.y - state.container.height - state.pendingFruit.radius
+
         for(fruit in state.droppedFruits.minus(state.pendingFruit)) {
             if(fruit.isTouching(state.pendingFruit) || fallen) {
                 fallen = true

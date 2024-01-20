@@ -28,4 +28,12 @@ data class Container(
         width - posX.toDouble() + 0.5,
         posY.toDouble()
     )
-) : UiObject
+) : UiObject {
+    init {
+        listOf(bottom, left, right).forEach {
+            it.density = 0.0
+            it.affectedByGravity = false
+            it.restitution = 0.0
+        }
+    }
+}
