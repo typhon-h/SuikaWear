@@ -154,13 +154,6 @@ fun GameCanvas(
             .focusRequester(focusRequester)
             .focusable()
     ) {
-        // Draw background
-        with(images[R.drawable.background]) {
-            if (this != null) {
-                draw(Size(size.width, size.height))
-            }
-        }
-
         // Draw Container
         images[container.image]?.let { drawContainer(container, it) }
 

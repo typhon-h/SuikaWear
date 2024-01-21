@@ -11,7 +11,16 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.typhonh.suikawear.R
 import com.typhonh.suikawear.presentation.theme.SuikaWearTheme
 
 class MainActivity : ComponentActivity() {
@@ -33,5 +42,30 @@ fun WearApp() {
          * see d.android.com/wear/compose.
          */
         GameCanvas()
+
+        Surface(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            val navController = rememberNavController()
+
+            Image(
+                painterResource(id = R.drawable.background),
+                "Background"
+            )
+            NavHost(
+                navController = navController,
+                startDestination = Screen.HomeScreen.route
+            ) {
+                composable(route = Screen.HomeScreen.route) {
+                    HomeFragment(
+                        navigate = navController::navigate
+                    )
+                }
+
+                composable(route = Screen.GameScreen.route) {
+                    GameCanvas()
+                }
+            }
+        }
     }
 }
