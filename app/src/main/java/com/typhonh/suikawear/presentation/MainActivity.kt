@@ -20,6 +20,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.wear.compose.material.ExperimentalWearMaterialApi
 import com.typhonh.suikawear.R
 import com.typhonh.suikawear.presentation.theme.SuikaWearTheme
 
@@ -33,6 +34,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalWearMaterialApi::class)
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun WearApp() {
@@ -41,10 +43,10 @@ fun WearApp() {
          * version of LazyColumn for wear devices with some added features. For more information,
          * see d.android.com/wear/compose.
          */
-        GameCanvas()
 
         Surface(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
         ) {
             val navController = rememberNavController()
 
@@ -63,7 +65,9 @@ fun WearApp() {
                 }
 
                 composable(route = Screen.GameScreen.route) {
-                    GameCanvas()
+                    GameFragment(
+                        navigate = navController::navigate
+                    )
                 }
             }
         }

@@ -82,10 +82,14 @@ class GameEngineViewModel(
     private fun checkEndCondition() {
         for(fruit in state.droppedFruits.minus(state.pendingFruit)) {
             if(fruit.body.position.y <= state.container.posY - state.container.height + state.pendingFruit.radius) {
-                state.score = 0
-                clearFruit()
+                resetGame()
             }
         }
+    }
+
+    fun resetGame() {
+        state.score = 0
+        clearFruit()
     }
 
     private fun checkDroppedFruit() {
