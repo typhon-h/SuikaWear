@@ -1,6 +1,7 @@
 package com.typhonh.suikawear.presentation
 
 import android.os.Build
+import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -100,7 +101,12 @@ fun GameFragment(
                     )
                 }
             },
-        )
+        ) {
+            BackHandler(
+                enabled = true,
+                onBack = { showClearConfirmation = false }
+            )
+        }
     }
 
     if(showBackConfirmation) {
@@ -134,6 +140,11 @@ fun GameFragment(
                     )
                 }
             },
-        )
+        ) {
+            BackHandler(
+                enabled = true,
+                onBack = { showBackConfirmation = false }
+            )
+        }
     }
 }
