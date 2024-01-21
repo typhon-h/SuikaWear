@@ -43,6 +43,11 @@ fun GameFragment(
     var showClearConfirmation by remember { mutableStateOf(false) }
     var showBackConfirmation by remember { mutableStateOf(false) }
 
+    BackHandler(
+        enabled = true,
+        onBack = { showBackConfirmation = true }
+    )
+
     Column(
         modifier = Modifier.padding(15.dp),
         horizontalAlignment = Alignment.Start,
