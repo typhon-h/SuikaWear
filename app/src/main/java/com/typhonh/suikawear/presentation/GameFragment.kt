@@ -23,6 +23,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavOptions
 import androidx.wear.compose.material.Button
@@ -31,12 +33,14 @@ import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.dialog.Alert
 import com.typhonh.suikawear.business.GameEngineViewModel
+import com.typhonh.suikawear.data.GameState
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun GameFragment(
     navigate: (route: String, navOptions: NavOptions) -> Unit,
-    viewModel: GameEngineViewModel = viewModel()
+    dataStore: DataStore<Preferences>,
+    viewModel: GameEngineViewModel = viewModel { GameEngineViewModel(GameState(), dataStore) }
 ) {
     GameCanvas(viewModel = viewModel)
 

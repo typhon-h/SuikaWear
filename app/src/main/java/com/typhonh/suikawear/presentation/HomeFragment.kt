@@ -52,7 +52,7 @@ fun HomeFragment(
 
         Row() {
             Button(
-                onClick = { }
+                onClick = { navigate(Screen.LeaderboardScreen.route, NavOptions.Builder().build()) }
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.leaderboard),

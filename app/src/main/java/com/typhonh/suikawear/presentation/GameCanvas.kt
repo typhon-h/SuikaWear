@@ -51,7 +51,6 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.wear.compose.material.MaterialTheme
 import com.typhonh.suikawear.R
 import com.typhonh.suikawear.business.GameController
@@ -63,7 +62,7 @@ import com.typhonh.suikawear.data.fruit.Fruit
 @Composable
 fun GameCanvas(
     modifier: Modifier = Modifier,
-    viewModel: GameEngineViewModel = viewModel()
+    viewModel: GameEngineViewModel
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
     val isRound = LocalConfiguration.current.isScreenRound

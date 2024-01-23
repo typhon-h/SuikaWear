@@ -4,22 +4,31 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntSize
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.typhonh.suikawear.data.GameState
 import com.typhonh.suikawear.data.fruit.Fruit
+import com.typhonh.suikawear.presentation.MainActivity
 import de.chaffic.dynamics.World
 import de.chaffic.math.Vec2
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.math.min
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 class GameEngineViewModel(
-    private val state: GameState = GameState()
+    private val state: GameState = GameState(),
+    private val dataStore: DataStore<Preferences>
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(GameState())
     val uiState: StateFlow<GameState> = _uiState.asStateFlow()
@@ -33,7 +42,7 @@ class GameEngineViewModel(
 
         viewModelScope.launch {
             while (true) {
-                if (state.size != IntSize.Zero ) {
+                if (state.size != IntSize.Zero && !state.hasEnded ) {
                     update()
                 }
                 delay(UPDATE_INTERVAL)
@@ -81,15 +90,43 @@ class GameEngineViewModel(
 
     private fun checkEndCondition() {
         for(fruit in state.droppedFruits.minus(state.pendingFruit)) {
-            if(fruit.body.position.y <= state.container.posY - state.container.height + state.pendingFruit.radius) {
-                resetGame()
+            if(state.score != 0 && fruit.body.position.y <= state.container.posY - state.container.height + state.pendingFruit.radius) {
+                state.hasEnded = true
+                viewModelScope.launch {
+                    updateHighScore()
+                }
             }
+        }
+    }
+
+    private suspend fun updateHighScore() {
+        val scoreString = dataStore.data.map { preferences ->
+            preferences[stringPreferencesKey(MainActivity.SETTINGS_KEY)] ?: ""
+        }.first()
+
+        var scores = scoreString.split(",").mapNotNull { s -> s.toIntOrNull() }.toMutableList()
+
+        scores.add(state.score)
+        scores.sortDescending()
+        scores = scores.subList(0,min(3, scores.size-1))
+        val commaSeparatedString = StringBuilder()
+        scores.forEachIndexed { index, number ->
+            commaSeparatedString.append(number)
+            if (index != scores.lastIndex) { // Add comma except for the last element
+                commaSeparatedString.append(",")
+            }
+        }
+
+        dataStore.edit { currentPreferences ->
+            currentPreferences[stringPreferencesKey(MainActivity.SETTINGS_KEY)] = commaSeparatedString.toString()
         }
     }
 
     fun resetGame() {
         state.score = 0
         clearFruit()
+        state.hasEnded = false
+        state.pendingFruit.isDropped = false
     }
 
     private fun checkDroppedFruit() {
@@ -171,7 +208,8 @@ class GameEngineViewModel(
                 pendingFruit = state.pendingFruit,
                 nextFruit = state.nextFruit,
                 droppedFruits = state.droppedFruits,
-                score = state.score
+                score = state.score,
+                hasEnded = state.hasEnded,
             )
         }
     }

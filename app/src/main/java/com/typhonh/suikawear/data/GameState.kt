@@ -11,5 +11,6 @@ data class GameState (
     var pendingFruit: Fruit = Fruit.getPendingCandidate(),
     var nextFruit: Fruit = Fruit.getPendingCandidate(),
     val droppedFruits: MutableList<Fruit> = mutableListOf(),
-    var score: Int = 0
+    var score: Int = 0,
+    var hasEnded: Boolean = false
     )
