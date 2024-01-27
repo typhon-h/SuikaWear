@@ -108,7 +108,7 @@ class GameEngineViewModel(
 
         scores.add(state.score)
         scores.sortDescending()
-        scores = scores.subList(0,min(3, scores.size-1))
+        scores = scores.subList(0,min(3, scores.size))
         val commaSeparatedString = StringBuilder()
         scores.forEachIndexed { index, number ->
             commaSeparatedString.append(number)
