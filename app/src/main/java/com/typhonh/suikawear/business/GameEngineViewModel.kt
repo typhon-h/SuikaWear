@@ -90,8 +90,10 @@ class GameEngineViewModel(
 
     private fun checkEndCondition() {
         for(fruit in state.droppedFruits.minus(state.pendingFruit)) {
-            if(state.score != 0 && fruit.body.position.y <= state.container.posY - state.container.height + state.pendingFruit.radius) {
+            if(state.score != 0 && fruit.body.position.y <= state.container.posY - state.container.imageHeight + state.pendingFruit.radius) {
                 state.hasEnded = true
+                world.step(UPDATE_INTERVAL.toDouble())
+                emitLatestState()
                 viewModelScope.launch {
                     updateHighScore()
                 }
@@ -127,6 +129,8 @@ class GameEngineViewModel(
         clearFruit()
         state.hasEnded = false
         state.pendingFruit.isDropped = false
+        state.pendingFruit = Fruit.getPendingCandidate()
+        state.nextFruit = Fruit.getPendingCandidate()
     }
 
     private fun checkDroppedFruit() {
