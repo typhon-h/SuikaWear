@@ -12,6 +12,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -26,6 +28,9 @@ import com.typhonh.suikawear.presentation.theme.wearColorPalette
 fun HomeFragment(
     navigate: (route: String, navOptions: NavOptions) -> Unit,
 ) {
+
+    val showInfo = remember { mutableStateOf(false) }
+
     Column(
         Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -64,7 +69,7 @@ fun HomeFragment(
             Spacer(modifier = Modifier.width(30.dp))
 
             Button(
-                onClick = { }
+                onClick = { showInfo.value = true }
             ) {
                 Icon(
                     Icons.Default.Info,
@@ -74,4 +79,6 @@ fun HomeFragment(
             }
         }
     }
+
+    InfoAlert(showInfo)
 }

@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -52,6 +53,7 @@ fun GameFragment(
 
     var showClearConfirmation by remember { mutableStateOf(false) }
     var showBackConfirmation by remember { mutableStateOf(false) }
+    val showInfo = remember { mutableStateOf(false) }
 
     BackHandler(
         enabled = true,
@@ -65,6 +67,19 @@ fun GameFragment(
     )  {
         Button(
             modifier = Modifier.size(25.dp),
+            onClick = { showInfo.value = true }
+        ) {
+            Icon(
+                Icons.Default.Info,
+                modifier = Modifier.size(15.dp),
+                contentDescription = "How to Play"
+            )
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Button(
+            modifier = Modifier.size(25.dp),
             onClick = { showClearConfirmation = true }
         ) {
             Icon(
@@ -74,7 +89,7 @@ fun GameFragment(
             )
         }
 
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         Button(
             modifier = Modifier.size(25.dp),
@@ -123,6 +138,8 @@ fun GameFragment(
             )
         }
     }
+
+    InfoAlert(showInfo)
 
     if(showBackConfirmation) {
         Alert(
