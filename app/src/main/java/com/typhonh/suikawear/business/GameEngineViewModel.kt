@@ -58,7 +58,7 @@ class GameEngineViewModel(
     }
 
     fun onRotate(rotationPixels: Float) {
-        if(state.pendingFruit.isDropped) {
+        if(state.pendingFruit.isDropped || state.hasEnded) {
             return
         }
         if (rotationPixels > 0) {
@@ -93,7 +93,6 @@ class GameEngineViewModel(
             if(state.score != 0 && fruit.body.position.y <= state.container.posY - state.container.imageHeight + state.pendingFruit.radius) {
                 state.hasEnded = true
                 world.step(UPDATE_INTERVAL.toDouble())
-                emitLatestState()
                 viewModelScope.launch {
                     updateHighScore()
                 }
