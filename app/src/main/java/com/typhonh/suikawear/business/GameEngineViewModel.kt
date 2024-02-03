@@ -84,13 +84,12 @@ class GameEngineViewModel(
         }
         left.createFixture(leftShape, 0f).apply {
             restitution = 0f
-//            friction = 9999999f
         }
         right.createFixture(rightShape, 0f).apply {
             restitution = 0f
-//            friction = 0.99999f
         }
     }
+
 
     fun onCanvasSizeChange(newSize: IntSize, isRound: Boolean) {
         state.isRound = isRound
@@ -137,7 +136,7 @@ class GameEngineViewModel(
         }
         state.pendingFruit.isDropped = true
 
-        state.pendingFruit.body(world) //TODO: configure - unneeded?
+        state.pendingFruit.body(world)
 
         state.droppedFruits.add(state.pendingFruit)
     }
@@ -244,7 +243,7 @@ class GameEngineViewModel(
         )
 
         state.droppedFruits.add(nextFruit)
-        nextFruit.body(world) // TODO: unneeded
+        nextFruit.body(world)
         state.droppedFruits.remove(f1)
         state.droppedFruits.remove(f2)
 
@@ -286,7 +285,7 @@ class GameEngineViewModel(
 
     private fun update() {
         state.ticks++
-        world.step(1f / FPS, 6, 2) // TODO: configure
+        world.step(1f / FPS, 6, 2)
         checkDroppedFruit()
         tryMergeFruit()
         checkEndCondition()
