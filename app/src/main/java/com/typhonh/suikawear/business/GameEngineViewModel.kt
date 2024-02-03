@@ -13,8 +13,6 @@ import androidx.lifecycle.viewModelScope
 import com.typhonh.suikawear.data.GameState
 import com.typhonh.suikawear.data.fruit.Fruit
 import com.typhonh.suikawear.presentation.MainActivity
-import de.chaffic.dynamics.World
-import de.chaffic.math.Vec2
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,6 +21,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.jbox2d.collision.shapes.PolygonShape
+import org.jbox2d.common.Vec2
+import org.jbox2d.dynamics.BodyDef
+import org.jbox2d.dynamics.BodyType
+import org.jbox2d.dynamics.World
 import kotlin.math.min
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -33,13 +36,10 @@ class GameEngineViewModel(
     private val _uiState = MutableStateFlow(GameState())
     val uiState: StateFlow<GameState> = _uiState.asStateFlow()
 
-    private val world = World(Vec2(0.0, GRAVITY))
+    private var world: World = World(Vec2(0f, GRAVITY))
 
     init {
-        listOf(state.container.bottom, state.container.left, state.container.right).forEach {
-            world.addBody(it)
-        }
-
+        initContainer()
         viewModelScope.launch {
             while (true) {
                 if (state.size != IntSize.Zero && !state.hasEnded ) {
@@ -47,6 +47,48 @@ class GameEngineViewModel(
                 }
                 delay(UPDATE_INTERVAL)
             }
+        }
+    }
+
+    private fun initContainer() {
+        val bottom = world.createBody(BodyDef().apply {
+            type = BodyType.STATIC
+            position = Vec2(state.container.posX, state.container.posY + state.container.height * 2)
+        })
+        val bottomShape = PolygonShape()
+        bottomShape.setAsBox(state.container.width, state.container.height)
+
+        val left = world.createBody(BodyDef().apply {
+            type = BodyType.STATIC
+            position = Vec2(
+                (-state.container.width + state.container.posX - 1),
+                state.container.posY
+                )
+        })
+        val leftShape = PolygonShape()
+        leftShape.setAsBox(1f, state.container.height * 2)
+
+        val right = world.createBody(BodyDef().apply {
+            type = BodyType.STATIC
+            position = Vec2(
+                (state.container.width - state.container.posX + 1),
+                state.container.posY
+            )
+        })
+        val rightShape = PolygonShape()
+        rightShape.setAsBox(1f, state.container.height * 2)
+
+        bottom.createFixture(bottomShape, 0f).apply {
+            restitution = 0f
+            density = 1f
+        }
+        left.createFixture(leftShape, 0f).apply {
+            restitution = 0f
+//            friction = 9999999f
+        }
+        right.createFixture(rightShape, 0f).apply {
+            restitution = 0f
+//            friction = 0.99999f
         }
     }
 
@@ -62,9 +104,15 @@ class GameEngineViewModel(
             return
         }
         if (rotationPixels > 0) {
-            state.pendingFruit.body.position.x += 0.05f
+            state.pendingFruit.position(
+                state.pendingFruit.position().x + 0.05f,
+                Fruit.PENDING_Y
+            )
         } else if (rotationPixels < 0) {
-            state.pendingFruit.body.position.x -= 0.05f
+            state.pendingFruit.position(
+                state.pendingFruit.position().x - 0.05f,
+                Fruit.PENDING_Y
+            )
         }
 
         clampPendingFruit()
@@ -74,7 +122,11 @@ class GameEngineViewModel(
         if(state.pendingFruit.isDropped) {
             return
         }
-        state.pendingFruit.body.position.x = 2 * (position.x.toDouble() / size.width) - 1
+
+        state.pendingFruit.position(
+            2 * (position.x / size.width) - 1,
+            Fruit.PENDING_Y
+            )
 
         clampPendingFruit()
     }
@@ -84,15 +136,16 @@ class GameEngineViewModel(
             return
         }
         state.pendingFruit.isDropped = true
-        world.addBody(state.pendingFruit.body)
+
+        state.pendingFruit.body(world) //TODO: configure - unneeded?
+
         state.droppedFruits.add(state.pendingFruit)
     }
 
     private fun checkEndCondition() {
         for(fruit in state.droppedFruits.minus(state.pendingFruit)) {
-            if(state.score != 0 && fruit.body.position.y <= state.container.posY - state.container.imageHeight + state.pendingFruit.radius) {
+            if(state.score != 0 && fruit.position().y <= state.container.posY - state.container.imageHeight + state.pendingFruit.radius) {
                 state.hasEnded = true
-                world.step(UPDATE_INTERVAL.toDouble())
                 viewModelScope.launch {
                     updateHighScore()
                 }
@@ -136,7 +189,7 @@ class GameEngineViewModel(
         if(!state.pendingFruit.isDropped) {
             return
         }
-        var fallen = state.pendingFruit.body.position.y >= state.container.bottom.position.y - state.container.height - state.pendingFruit.radius
+        var fallen = state.pendingFruit.position().y >= state.container.posY + state.container.height * 2 - state.container.imageHeight - state.pendingFruit.radius
 
         for(fruit in state.droppedFruits.minus(state.pendingFruit)) {
             if(fruit.isTouching(state.pendingFruit) || fallen) {
@@ -146,10 +199,10 @@ class GameEngineViewModel(
         }
 
         if(fallen) {
-            val oldX = state.pendingFruit.body.position.x
+            val oldX = state.pendingFruit.position().x
             state.pendingFruit = state.nextFruit
             state.nextFruit = Fruit.getPendingCandidate()
-            state.pendingFruit.body.position.x = oldX
+            state.pendingFruit.position(oldX, Fruit.PENDING_Y)
             clampPendingFruit()
         }
     }
@@ -185,20 +238,23 @@ class GameEngineViewModel(
     }
 
     private fun combineFruit(f1: Fruit, f2: Fruit, nextFruit:Fruit) {
-        nextFruit.body.position.x = (f1.body.position.x + f2.body.position.x) / 2
-        nextFruit.body.position.y = (f1.body.position.y + f2.body.position.y) / 2
+        nextFruit.position(
+            (f1.position().x + f2.position().x) / 2,
+            (f1.position().y + f2.position().y) / 2
+        )
+
         state.droppedFruits.add(nextFruit)
-        world.addBody(nextFruit.body)
+        nextFruit.body(world) // TODO: unneeded
         state.droppedFruits.remove(f1)
         state.droppedFruits.remove(f2)
 
-        world.removeBody(f1.body)
-        world.removeBody(f2.body)
+        world.destroyBody(f1.body(world))
+        world.destroyBody(f2.body(world))
     }
 
     private fun clearFruit() {
         while (state.droppedFruits.isNotEmpty()) {
-            world.removeBody(state.droppedFruits.first().body)
+            world.destroyBody(state.droppedFruits.first().body(world))
             state.droppedFruits.remove(state.droppedFruits.first())
         }
     }
@@ -218,16 +274,19 @@ class GameEngineViewModel(
     }
 
     private fun clampPendingFruit() {
-        state.pendingFruit.body.position.x = state.pendingFruit.body.position.x
-            .coerceIn(
-                -state.container.width + state.pendingFruit.radius,
-                state.container.width - state.pendingFruit.radius
-            )
+        state.pendingFruit.position(
+            state.pendingFruit.position().x
+                .coerceIn(
+                    -state.container.width + state.pendingFruit.radius,
+                    state.container.width - state.pendingFruit.radius
+                ),
+            Fruit.PENDING_Y
+        )
     }
 
     private fun update() {
         state.ticks++
-        world.step(UPDATE_INTERVAL.toDouble())
+        world.step(1f / FPS, 6, 2) // TODO: configure
         checkDroppedFruit()
         tryMergeFruit()
         checkEndCondition()
@@ -237,6 +296,6 @@ class GameEngineViewModel(
     companion object {
         private const val FPS = 30
         private const val UPDATE_INTERVAL = 1000L / FPS
-        private const val GRAVITY = 0.000004 // %s^-2
+        private const val GRAVITY = 6f // %s^-2
     }
 }

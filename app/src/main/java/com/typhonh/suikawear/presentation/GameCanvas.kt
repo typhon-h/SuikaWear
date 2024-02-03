@@ -239,8 +239,8 @@ private fun DrawScope.drawScore(score: Int, textMeasurer: TextMeasurer, font: Te
             text = textToDraw,
             style = it,
             topLeft = calcTopLeftOffset(
-                textLayoutResult.size.width.toFloat() / size.width,
-                textLayoutResult.size.height.toFloat() / size.width,
+                textLayoutResult.size.width / size.width,
+                textLayoutResult.size.height / size.width,
                 0f,
                 0.87f
             )
@@ -270,22 +270,22 @@ private fun DrawScope.drawNextFruit(nextFruit: Fruit, fruitImage: Painter, frame
     val frameCenter = calcCenterOffset(
         Fruit.NEXT_FRAME_RADIUS,
         Fruit.NEXT_FRAME_RADIUS,
-        Fruit.NEXT_X.toFloat(),
-        Fruit.NEXT_Y.toFloat() + posOffset
+        Fruit.NEXT_X,
+        Fruit.NEXT_Y + posOffset
     )
 
     val textCenter = calcCenterOffset(
         Fruit.NEXT_FRAME_RADIUS,
         Fruit.NEXT_FRAME_RADIUS,
-        Fruit.NEXT_X.toFloat(),
-        Fruit.NEXT_Y.toFloat()
+        Fruit.NEXT_X,
+        Fruit.NEXT_Y
     )
 
     val fruitCenter = calcCenterOffset(
-        nextFruit.radius.toFloat(),
-        nextFruit.radius.toFloat(),
-        Fruit.NEXT_X.toFloat(),
-        Fruit.NEXT_Y.toFloat() + posOffset
+        nextFruit.radius,
+        nextFruit.radius,
+        Fruit.NEXT_X,
+        Fruit.NEXT_Y + posOffset
     )
 
     translate(frameCenter.x, frameCenter.y) {
@@ -296,7 +296,7 @@ private fun DrawScope.drawNextFruit(nextFruit: Fruit, fruitImage: Painter, frame
 
     translate(fruitCenter.x, fruitCenter.y) {
         with(fruitImage) {
-            draw(calcSize(nextFruit.radius.toFloat(), nextFruit.radius.toFloat()))
+            draw(calcSize(nextFruit.radius, nextFruit.radius))
         }
     }
 
@@ -340,20 +340,20 @@ private fun DrawScope.drawGuide(
         topLeft = calcTopLeftOffset(
             guideWidth,
             guideWidth,
-            pendingFruit.body.position.x.toFloat(),
-            (Fruit.PENDING_Y - 0.1).toFloat()
+            pendingFruit.position().x,
+            Fruit.PENDING_Y - 0.1f
         ),
         size = calcSize(
             guideWidth,
-            (container.height + container.posY - Fruit.PENDING_Y - container.imageHeight).toFloat()
+            container.height + container.posY - Fruit.PENDING_Y - container.imageHeight
         )
     )
 
     val topLeft = calcTopLeftOffset(
         0.02f,
         0.21f,
-        pendingFruit.body.position.x.toFloat(),
-        Fruit.PENDING_Y.toFloat()
+        pendingFruit.position().x,
+        Fruit.PENDING_Y
     )
 
     translate (topLeft.x, topLeft.y) {
@@ -379,12 +379,12 @@ private fun DrawScope.drawContainer(container: Container, image: Painter) {
 }
 
 private fun DrawScope.drawFruit(fruit: Fruit, image: Painter) {
-    val radius = (fruit.radius * size.width / 2).toFloat()
+    val radius = fruit.radius * size.width / 2
     val center = calcCenterOffset(
-        fruit.radius.toFloat(),
-        fruit.radius.toFloat(),
-        fruit.body.position.x.toFloat(),
-        fruit.body.position.y.toFloat()
+        fruit.radius,
+        fruit.radius,
+        fruit.position().x,
+        fruit.position().y
     )
 
     val path = androidx.compose.ui.graphics.Path().apply {
@@ -400,7 +400,7 @@ private fun DrawScope.drawFruit(fruit: Fruit, image: Painter) {
     }
 
     rotate(
-        (fruit.body.orientation * 60 % 360).toFloat(),
+        ((fruit.orientation() * Math.PI * radius).toFloat()),
         Offset(
             center.x + radius,
             center.y + radius
@@ -409,7 +409,7 @@ private fun DrawScope.drawFruit(fruit: Fruit, image: Painter) {
         clipPath(path) {
             translate(center.x, center.y) {
                 with(image) {
-                    draw(calcSize(fruit.radius.toFloat(), fruit.radius.toFloat()))
+                    draw(calcSize(fruit.radius, fruit.radius))
                 }
             }
         }

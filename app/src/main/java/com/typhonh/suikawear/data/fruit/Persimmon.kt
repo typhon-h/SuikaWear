@@ -5,4 +5,4 @@ import com.typhonh.suikawear.R
 class Persimmon(
     override var image: Int = R.drawable.persimmon,
     override var points: Int = 15
-) : Fruit(0.114)
+) : Fruit(0.114f)
