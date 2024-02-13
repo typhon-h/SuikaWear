@@ -3,11 +3,12 @@ package com.typhonh.suikawear.presentation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -50,10 +51,10 @@ fun LeaderboardFragment(
 
     }
 
-    Column(modifier = Modifier.fillMaxHeight().padding(vertical = 15.dp),
-        horizontalAlignment = Alignment.Start,
+    Column(modifier = Modifier.fillMaxSize().padding(0.dp,20.dp,0.dp,0.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceAround) {
-        Row(horizontalArrangement = Arrangement.Start, verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(50.dp, 0.dp, 0.dp, 0.dp)) {
+        Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth(0.6f)) {
                 Icon(
                     painter = painterResource(id = R.drawable.trophy),
                     tint = Color(197, 188, 66),
@@ -67,7 +68,7 @@ fun LeaderboardFragment(
                     ),))
         }
 
-        Row(horizontalArrangement = Arrangement.Start, verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(50.dp, 0.dp, 0.dp, 0.dp)) {
+        Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth(0.6f)) {
                 Icon(
                     painter = painterResource(id = R.drawable.trophy),
                     tint = Color(214,214,214),
@@ -81,7 +82,7 @@ fun LeaderboardFragment(
                     ),))
         }
 
-        Row(horizontalArrangement = Arrangement.Start, verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(50.dp, 0.dp, 0.dp, 0.dp)) {
+        Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth(0.6f)) {
             Icon(
                 painter = painterResource(id = R.drawable.trophy),
                 tint = Color(151, 117, 71),
@@ -102,7 +103,7 @@ fun LeaderboardFragment(
             }
         ) {
             Icon(
-                Icons.Default.ArrowBack,
+                Icons.AutoMirrored.Filled.ArrowBack,
                 modifier = Modifier.size(25.dp),
                 contentDescription = "Back"
             )
