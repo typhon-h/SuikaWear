@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
@@ -98,7 +98,7 @@ fun GameFragment(
             }
         ) {
             Icon(
-                Icons.Default.ArrowBack,
+                Icons.AutoMirrored.Default.ArrowBack,
                 modifier = Modifier.size(15.dp),
                 contentDescription = "Back"
             )
@@ -196,7 +196,7 @@ fun GameFragment(
                 Button(
                     onClick = { navigate(Screen.HomeScreen.route, NavOptions.Builder().setPopUpTo(Screen.HomeScreen.route, true).build()) }) {
                     Icon(
-                        Icons.Default.ArrowBack,
+                        Icons.AutoMirrored.Default.ArrowBack,
                         "Back to Menu"
                     )
                 }

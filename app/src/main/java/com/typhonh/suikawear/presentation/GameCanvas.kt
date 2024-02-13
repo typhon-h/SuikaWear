@@ -57,6 +57,7 @@ import com.typhonh.suikawear.business.GameController
 import com.typhonh.suikawear.business.GameEngineViewModel
 import com.typhonh.suikawear.data.Container
 import com.typhonh.suikawear.data.fruit.Fruit
+import org.jbox2d.dynamics.Fixture
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
@@ -100,7 +101,7 @@ fun GameCanvas(
     container: Container,
     pendingFruit: Fruit,
     nextFruit: Fruit,
-    droppedFruits: List<Fruit>,
+    droppedFruits: MutableMap<Fixture, Fruit>,
     score: Int,
     gameController: GameController,
     modifier: Modifier = Modifier
@@ -173,9 +174,9 @@ fun GameCanvas(
 
         // Draw Dropped Fruits
         droppedFruits.forEach {fruit ->
-            images[fruit.image]?.let {
+            images[fruit.value.image]?.let {
                 drawFruit(
-                    fruit,
+                    fruit.value,
                     it
                 )
             }

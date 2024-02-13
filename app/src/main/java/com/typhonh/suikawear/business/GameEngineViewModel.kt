@@ -21,28 +21,34 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.jbox2d.callbacks.ContactImpulse
+import org.jbox2d.callbacks.ContactListener
+import org.jbox2d.collision.Manifold
 import org.jbox2d.collision.shapes.PolygonShape
 import org.jbox2d.common.Vec2
 import org.jbox2d.dynamics.BodyDef
 import org.jbox2d.dynamics.BodyType
 import org.jbox2d.dynamics.World
+import org.jbox2d.dynamics.contacts.Contact
 import kotlin.math.min
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 class GameEngineViewModel(
     private val state: GameState = GameState(),
     private val dataStore: DataStore<Preferences>
-) : ViewModel() {
+) : ViewModel(), ContactListener {
     private val _uiState = MutableStateFlow(GameState())
     val uiState: StateFlow<GameState> = _uiState.asStateFlow()
 
     private var world: World = World(Vec2(0f, GRAVITY))
+    private var mergeCandidates: Pair<Fruit, Fruit>? = null
 
     init {
         initContainer()
+        world.setContactListener(this)
         viewModelScope.launch {
             while (true) {
-                if (state.size != IntSize.Zero && !state.hasEnded ) {
+                if (state.size != IntSize.Zero && !state.hasEnded) {
                     update()
                 }
                 delay(UPDATE_INTERVAL)
@@ -61,9 +67,9 @@ class GameEngineViewModel(
         val left = world.createBody(BodyDef().apply {
             type = BodyType.STATIC
             position = Vec2(
-                (-state.container.width + state.container.posX - 1),
+                (-state.container.imageWidth + state.container.posX - 1),
                 state.container.posY
-                )
+            )
         })
         val leftShape = PolygonShape()
         leftShape.setAsBox(1f, state.container.height * 2)
@@ -71,7 +77,7 @@ class GameEngineViewModel(
         val right = world.createBody(BodyDef().apply {
             type = BodyType.STATIC
             position = Vec2(
-                (state.container.width - state.container.posX + 1),
+                (state.container.imageWidth - state.container.posX + 1),
                 state.container.posY
             )
         })
@@ -99,7 +105,7 @@ class GameEngineViewModel(
     }
 
     fun onRotate(rotationPixels: Float) {
-        if(state.pendingFruit.isDropped || state.hasEnded) {
+        if (state.pendingFruit.isDropped || state.hasEnded) {
             return
         }
         if (rotationPixels > 0) {
@@ -118,36 +124,39 @@ class GameEngineViewModel(
     }
 
     fun onDrag(position: Offset, size: IntSize) {
-        if(state.pendingFruit.isDropped) {
+        if (state.pendingFruit.isDropped) {
             return
         }
 
         state.pendingFruit.position(
             2 * (position.x / size.width) - 1,
             Fruit.PENDING_Y
-            )
+        )
 
         clampPendingFruit()
     }
 
     fun onTap() {
-        if(state.pendingFruit.isDropped) {
+        if (state.pendingFruit.isDropped) {
             return
         }
         state.pendingFruit.isDropped = true
 
         state.pendingFruit.body(world)
 
-        state.droppedFruits.add(state.pendingFruit)
+        state.droppedFruits[state.pendingFruit.body(world).fixtureList] = state.pendingFruit
     }
 
     private fun checkEndCondition() {
-        for(fruit in state.droppedFruits.minus(state.pendingFruit)) {
-            if(state.score != 0 && fruit.position().y <= state.container.posY - state.container.imageHeight + state.pendingFruit.radius) {
+        val fruits = if (state.pendingFruit.isDropped) state.droppedFruits.minus(state.pendingFruit.body(world).fixtureList) else state.droppedFruits
+        for (fruit in fruits) {
+            if (state.score != 0 && fruit.value.position().y <= state.container.posY - state.container.imageHeight + state.pendingFruit.radius) {
                 state.hasEnded = true
                 viewModelScope.launch {
                     updateHighScore()
                 }
+                emitLatestState()
+                break
             }
         }
     }
@@ -161,7 +170,7 @@ class GameEngineViewModel(
 
         scores.add(state.score)
         scores.sortDescending()
-        scores = scores.subList(0,min(3, scores.size))
+        scores = scores.subList(0, min(3, scores.size))
         val commaSeparatedString = StringBuilder()
         scores.forEachIndexed { index, number ->
             commaSeparatedString.append(number)
@@ -171,7 +180,8 @@ class GameEngineViewModel(
         }
 
         dataStore.edit { currentPreferences ->
-            currentPreferences[stringPreferencesKey(MainActivity.SETTINGS_KEY)] = commaSeparatedString.toString()
+            currentPreferences[stringPreferencesKey(MainActivity.SETTINGS_KEY)] =
+                commaSeparatedString.toString()
         }
     }
 
@@ -184,77 +194,11 @@ class GameEngineViewModel(
         state.nextFruit = Fruit.getPendingCandidate()
     }
 
-    private fun checkDroppedFruit() {
-        if(!state.pendingFruit.isDropped) {
-            return
-        }
-        var fallen = state.pendingFruit.position().y >= state.container.posY + state.container.height * 2 - state.container.imageHeight - state.pendingFruit.radius
-
-        for(fruit in state.droppedFruits.minus(state.pendingFruit)) {
-            if(fruit.isTouching(state.pendingFruit) || fallen) {
-                fallen = true
-                break
-            }
-        }
-
-        if(fallen) {
-            val oldX = state.pendingFruit.position().x
-            state.pendingFruit = state.nextFruit
-            state.nextFruit = Fruit.getPendingCandidate()
-            state.pendingFruit.position(oldX, Fruit.PENDING_Y)
-            clampPendingFruit()
-        }
-    }
-
-    private fun tryMergeFruit() {
-        var i = 0
-        var largestFruit: Fruit? = null
-        while (i < state.droppedFruits.size) {
-            val f1 = state.droppedFruits[i]
-
-            var j = i + 1
-            while (j < state.droppedFruits.size) {
-                val f2 = state.droppedFruits[j]
-                if(f1.canMergeWith(f2)) {
-                    val nextFruit = Fruit.getNextFruit(f1::class)
-                    largestFruit = largestFruit?.takeIf { f1.radius > it.radius } ?: f1
-
-                    if(nextFruit != null) {
-                        combineFruit(f1, f2, nextFruit)
-                    } else {
-                        clearFruit()
-                    }
-
-                    break
-                }
-                j++
-            }
-
-            i++
-        }
-
-        state.score += largestFruit?.points ?: 0
-    }
-
-    private fun combineFruit(f1: Fruit, f2: Fruit, nextFruit:Fruit) {
-        nextFruit.position(
-            (f1.position().x + f2.position().x) / 2,
-            (f1.position().y + f2.position().y) / 2
-        )
-
-        state.droppedFruits.add(nextFruit)
-        nextFruit.body(world)
-        state.droppedFruits.remove(f1)
-        state.droppedFruits.remove(f2)
-
-        world.destroyBody(f1.body(world))
-        world.destroyBody(f2.body(world))
-    }
-
     private fun clearFruit() {
         while (state.droppedFruits.isNotEmpty()) {
-            world.destroyBody(state.droppedFruits.first().body(world))
-            state.droppedFruits.remove(state.droppedFruits.first())
+            val entry = state.droppedFruits.map{e -> e}.first()
+            world.destroyBody(entry.value.body(world))
+            state.droppedFruits.remove(entry.key)
         }
     }
 
@@ -286,15 +230,78 @@ class GameEngineViewModel(
     private fun update() {
         state.ticks++
         world.step(1f / FPS, 6, 2)
-        checkDroppedFruit()
-        tryMergeFruit()
-        checkEndCondition()
+        tryMerge()
         emitLatestState()
+        checkEndCondition()
     }
 
-    companion object {
-        private const val FPS = 30
-        private const val UPDATE_INTERVAL = 1000L / FPS
-        private const val GRAVITY = 6f // %s^-2
+    private fun tryMerge() {
+        if (mergeCandidates != null) {
+            val f1 = mergeCandidates!!.first
+            val f2 = mergeCandidates!!.second
+
+            val nextFruit = Fruit.getNextFruit(f1::class)
+            if (nextFruit != null) {
+                nextFruit.position(
+                    (f1.position().x + f2.position().x) / 2,
+                    (f1.position().y + f2.position().y) / 2
+                )
+                nextFruit.body(world)
+                state.droppedFruits[nextFruit.body(world).fixtureList] = nextFruit
+                state.droppedFruits.remove(f1.body(world).fixtureList)
+                state.droppedFruits.remove(f2.body(world).fixtureList)
+
+                world.destroyBody(f1.body(world))
+                world.destroyBody(f2.body(world))
+            } else { // Watermelon
+                clearFruit()
+            }
+            state.score += f1.points
+            mergeCandidates = null
+        }
+    }
+
+        companion object {
+            private const val FPS = 30
+            private const val UPDATE_INTERVAL = 1000L / FPS
+            private const val GRAVITY = 4.5f // %s^-2
+        }
+
+        override fun beginContact(contact: Contact?) {
+            if (contact != null) {
+                if (state.pendingFruit.isDropped &&
+                    (contact.fixtureA == state.pendingFruit.body(world).fixtureList
+                    || contact.fixtureB == state.pendingFruit.body(world).fixtureList)
+                ) {
+                    val oldX = state.pendingFruit.position().x
+                    state.pendingFruit = state.nextFruit
+                    state.nextFruit = Fruit.getPendingCandidate()
+                    state.pendingFruit.position(oldX, Fruit.PENDING_Y)
+                    clampPendingFruit()
+                }
+                if (state.droppedFruits[contact.fixtureA] != null
+                    && state.droppedFruits[contact.fixtureB] != null
+                ) {
+                    val f1 = state.droppedFruits[contact.fixtureA]!!
+                    val f2 = state.droppedFruits[contact.fixtureB]!!
+
+                    if (f1.canMergeWith(f2)
+                        && (mergeCandidates == null || f1.points > mergeCandidates!!.first.points)) {
+                            mergeCandidates = Pair(f1, f2)
+                        }
+                    }
+                }
+            }
+
+    override fun endContact(contact: Contact?) {
+        // Do nothing
+    }
+
+    override fun preSolve(contact: Contact?, oldManifold: Manifold?) {
+        // Do nothing
+    }
+
+    override fun postSolve(contact: Contact?, impulse: ContactImpulse?) {
+        // Do nothing
     }
 }
